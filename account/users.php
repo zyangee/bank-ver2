@@ -2,7 +2,7 @@
 session_start();
 include "../dbconn.php";
 // 사용자 ID는 세션에서 가져온다고 가정합니다.
-$user_num = $_SESSION['user_num']; // 여기 user_num으로 수정하면서 24, 87, 91, 157 수정함. 157이 id일떄 안됨
+$user_num = $_SESSION['user_num'];
 
 // 사용자 정보를 가져오는 SQL 쿼리
 $sql = "SELECT username, phone_number, userid, email, date_of_birth, account_created_at, last_login, password 

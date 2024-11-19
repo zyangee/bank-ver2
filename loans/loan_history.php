@@ -76,7 +76,7 @@ $conn = null; // 연결 종료
                 <li><a href="../index.php">홈</a></li>
                 <li>|</li>
                 <?php
-                include "dbconn.php";
+                include "../dbconn.php";
                 if (isset($_SESSION['username'])): ?>
                     <li><a href="../acccount/users.php"><?php echo $_SESSION['username']; ?></a>님</li>
                     <li>|</li>
