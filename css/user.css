@@ -1,0 +1,52 @@
+.form_css {
+  max-width: 700px;
+}
+
+.info-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-size: 18px;
+  color: #333333;
+}
+
+.info-table th,
+.info-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.info-table th {
+  font-weight: bold;
+}
+
+.account-info {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.account-table {
+  width: 80%;
+  border-collapse: collapse;
+  border: 1px solid #cccccc;
+  margin-top: 20px;
+}
+
+.account-table th,
+.account-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #ccc;
+}
+
+.account-table th {
+  background-color: #e7f0ff;
+  font-weight: bold;
+  text-align: center;
+}
+
+.account-table td {
+  text-align: center;
+}

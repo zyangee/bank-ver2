@@ -1,0 +1,104 @@
+.container {
+  max-width: 900px;
+  margin: 30px auto;
+  padding: 20px 30px;
+  background-color: #f7f9fc;
+  border-radius: 15px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+h2 {
+  margin-bottom: 30px;
+}
+
+.search-box {
+  margin-bottom: 50px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.search-group {
+  margin-bottom: 20px;
+  margin-top: 20px;
+  margin-left: 30px;
+}
+
+.search-group label {
+  font-weight: bold;
+}
+
+select,
+input[type="date"] {
+  flex: 1;
+  border: 1px solid #cccccc;
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 16px;
+  margin-left: 20px;
+  transition: border-color 0.3s;
+  width: 100%;
+  max-width: 200px;
+}
+
+select:focus,
+input[type="date"]:focus {
+  border-color: #003366;
+  outline: none;
+}
+
+input[type="radio"] {
+  margin-right: 5px;
+  margin-left: 20px;
+}
+
+span {
+  font-size: 16px;
+  margin-right: 15px;
+  font-weight: normal;
+}
+
+.search-btn {
+  padding: 10px 25px;
+  background-color: #003366;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s;
+}
+
+.search-btn:hover {
+  background-color: #002244;
+}
+
+.result-box {
+  margin-top: 20px;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+th,
+td {
+  border: 1px solid #cccccc;
+  padding: 12px;
+  text-align: center;
+}
+
+th {
+  background-color: #e7f0ff;
+  font-weight: bold;
+}
+
+.error {
+  color: red;
+  font-size: 14px;
+  margin-top: 10px;
+}

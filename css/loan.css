@@ -1,0 +1,74 @@
+.loan-products {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.loan-product {
+  background-color: #f9f9f9;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 15px;
+  flex: 1 1 calc(33% - 20px); /* 3개 열로 나누기 */
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s;
+}
+
+.loan-product:hover {
+  transform: translateY(-5px);
+}
+
+h3 {
+  color: #003366;
+  margin-bottom: 10px;
+  font-size: 1.5em;
+  font-weight: bold;
+  border-bottom: 2px solid #003366;
+  padding-bottom: 5px;
+}
+
+p {
+  color: #333333;
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+
+.input_button {
+  background-color: #003366;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.input_button:hover {
+  background-color: #0055a5; /* 버튼 hover 색상 */
+}
+
+.details {
+  margin-top: 10px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px; /* 테이블 상단 여백 */
+}
+
+th {
+  text-align: left;
+  padding: 10px;
+  font-size: 14px;
+  background-color: #e0e0e0; /* 헤더 배경색 */
+  color: #003366; /* 헤더 텍스트 색상 */
+}
+
+td {
+  padding: 10px;
+  font-size: 14px;
+  border-top: 1px solid #ddd; /* 테이블 셀 위쪽 경계선 */
+  background-color: #ffffff; /* 셀 배경색 */
+  color: #333333; /* 셀 텍스트 색상 */
+}

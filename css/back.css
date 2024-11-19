@@ -1,0 +1,59 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Noto Sans KR", sans-serif;
+  background: #f0f0f0;
+  color: #333;
+}
+
+.navbar {
+  background-color: #036;
+  color: #fff;
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.navbar span {
+  font-size: 1.5em;
+  font-weight: bold;
+}
+
+.navbar ul {
+  list-style: none;
+  display: flex;
+}
+
+.navbar ul li {
+  margin: 0 10px;
+}
+
+.navbar a {
+  color: white;
+  text-decoration: none;
+  /* 기본 링크의 밑줄 제거 */
+}
+
+.navbar a:visited {
+  color: white;
+  /* 방문한 링크 색상 설정 */
+  text-decoration: none;
+  /* 방문한 링크의 밑줄 제거 */
+}
+
+.navbar a:hover {
+  color: #f0f0f0;
+  /* 마우스 오버 시 색상 변경 */
+  text-decoration: underline;
+  /* 마우스 오버 시에도 밑줄 제거 */
+}
+
+.navbar a:focus {
+  outline: none;
+  /* 포커스 시 밑줄 제거 */
+}
