@@ -4,7 +4,7 @@ COPY ../dbconn.php /var/www/html/dbconn.php
 COPY ../index.php /var/www/html/index.php
 COPY ../javascript /var/www/html/javascript
 COPY ../css /var/www/html/css
-COPY . /var/www/html/loan
+COPY . /var/www/html/loans
 
 RUN docker-php-ext-install pdo pdo_mysql
 RUN a2enmod rewrite
