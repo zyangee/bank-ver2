@@ -1,4 +1,46 @@
 <?php
+session_start();
+ini_set('session.cookie_httponly', 1);
+ini_set('session.cookie_secure', 1);
+ini_set('session.use_strict_mode', 1);
+ini_set('session.cookie_samesite', 'Strict');
+
+$inactive = 1800;
+if (isset($_SESSION['timeout'])) {
+    if (time() - $_SESSION['timeout'] > $inactive) {
+        session_unset();
+        session_destroy();
+        header("Location: ../login/login.php");
+        exit;
+    }
+}
+$_SESSION['timeout'] = time();
+session_regenerate_id(true);
+
+include "../dbconn.php";
+
+if (!isset($_SESSION['user_num'])) {
+    header("Location: ../login/login.php");
+    exit();
+}
+function checkRateLimit()
+{
+    if (!isset($_SESSION['account_attempts'])) {
+        $_SESSION['account_attempts'] = 1;
+        $_SESSION['last_attempt'] = time();
+        return true;
+    }
+    if (time() - $_SESSION['last_attempt'] > 3600) {
+        $_SESSION['account_attempts'] = 1;
+        $_SESSION['last_attempt'] = time();
+        return true;
+    }
+    if ($_SESSION['account_attempts'] >= 3) {
+        return false;
+    }
+    $_SESSION['account_attempts']++;
+    return true;
+}
 function randomAccountNumber($conn)
 {
     $max = 1000;
@@ -12,7 +54,7 @@ function randomAccountNumber($conn)
             //DB에서 중복 확인
             $query = "SELECT count(*) FROM accounts WHERE account_number = :account_number";
             $stmt_random = $conn->prepare($query);
-            $stmt_random->bindParam(":account_number", $account_number);
+            $stmt_random->bindParam(":account_number", $account_number, PDO::PARAM_STR);
             $stmt_random->execute();
             $count = $stmt_random->fetchColumn(); //행의 개수 가져오기(account_number가 같은게 있는지 확인 작업)
 
@@ -26,33 +68,6 @@ function randomAccountNumber($conn)
         error_log("계좌생성 오류: " . $e->getMessage());
         throw new Exception("계좌 생성 처리 중 오류가 발생했습니다.");
     }
-}
-
-// function checkRateLimit()
-// {
-//     if (!isset($_SESSION['account_attempts'])) {
-//         $_SESSION['account_attempts'] = 1;
-//         $_SESSION['last_attempt'] = time();
-//         return true;
-//     }
-//     if (time() - $_SESSION['last_attempt'] > 3600) {
-//         $_SESSION['account_attempts'] = 1;
-//         $_SESSION('last_attempt') = time();
-//         return true;
-//     }
-//     if ($_SESSION['account_attempts'] >= 3) {
-//         return false;
-//     }
-//     $_SESSION['account_attempts']++;
-//     return true;
-// }
-
-session_start();
-include "../dbconn.php";
-
-if (!isset($_SESSION['user_num'])) {
-    header("Location: ../login/login.php");
-    exit();
 }
 
 $user_num = $_SESSION['user_num'];
@@ -75,10 +90,13 @@ if (strpos($resident_num, '-') !== false) {
 }
 
 if ($row > 0) {
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && $resident_num) {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
-            if (!chechRateLimit()) {
+            if (!checkRateLimit()) {
                 throw new Exception("계좌 생성 요청이 너무 많습니다. 잠시 후 다시 시도해주세요.");
+            }
+            if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+                throw new Exception("잘못된 접근입니다.");
             }
 
             //입력값 검증
