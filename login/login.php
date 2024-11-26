@@ -2,6 +2,11 @@
 session_start();
 include "../dbconn.php";
 
+//로그인 시도 횟수 제한 확인
+if (isset($_SESSION['login_attempts']) && $_SESSION['login_attempts'] >= 5 && time() - $_SESSION['last_attempt'] < 300) {
+    die("너무 많은 로그인 시도가 있었습니다. 5분 후에 다시 시도해주세요.");
+}
+//이미 로그인된 경우
 if (isset($_SESSION["username"])) {
     header("Location: logout.php");
     exit();
@@ -26,20 +31,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $stmt->fetch(PDO::FETCH_ASSOC); // 사용자 정보 조회
 
         if ($user && password_verify($password, $user['password'])) {
+            //로그인 성공
+            session_regenerate_id(true); //세션 ID 재생성
+
             $_SESSION['userid'] = $user['userid']; // 세션에 사용자 ID 저장
             $_SESSION['username'] = $user['username']; // 세션에 사용자 이름 저장
             $_SESSION['user_num'] = $user['user_num'];
             $_SESSION['last_activity'] = time();
+            $_SESSION['user_agent'] = $_SERVER['HTTP_USER_AGENT'];
+            $_SESSION['ip'] = $_SERVER['REMOTE_ADDR'];
+
+            //로그인 시도 횟수 초기화
+            unset($_SESSION['login_attempts']);
+            unset($_SESSION['last_attempt']);
 
             // 로그인 성공 시 last_login 업데이트
-            $update_sql = "UPDATE users SET last_login = NOW() WHERE userid = :userid";
+            $update_sql = "UPDATE users SET last_login = NOW(), last_ip = :ip, login_attempts = 0 WHERE userid = :userid";
             $stmt = $conn->prepare($update_sql);
             $stmt->bindParam(':userid', $userid);
+            $stmt->bindParam(':ip', $_SERVER['REMOTE_ADDR']);
             $stmt->execute();
+
+            //로그인 성공 로그
+            error_log("로그인 성공 - User: {$userid}, IP: {$_SERVER['REMOTE_ADDR']}");
 
             header("Location: ../index.php");
             exit();
         } else {
+            //로그인 실패
+            $_SESSION['login_attempts'] = ($_SESSION['login_attempts'] ?? 0) + 1;
+            $_SESSION['last_attempt'] = time();
+
+            error_log("로그인 실패 - User: {$userid}, IP: {$_SERVER['REMOTE_ADDR']}, Attempts: {$_SESSION['login_attempts']}");
+
+            //실패 횟수 업데이트
+            $fail_sql = "UPDATE users SET login_attemps = login_attempts +1 WHERE userid = :userid";
+            $stmt = $conn->prepare($fail_sql);
+            $stmt->bindParam(':userid', $userid);
+            $stmt->execute();
+
             $error_message = "아이디 또는 비밀번호가 올바르지 않습니다.";
         }
     } catch (PDOException $e) {
@@ -58,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <meta http-equiv="X-Frame-Options" content="DENY">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline';">
 
     <title>로그인</title>
     <link rel="stylesheet" href="../css/back.css">
@@ -86,6 +116,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php if (isset($error_message)): ?>
             <div class="error_message"><?php echo htmlspecialchars($error_message); ?></div>
         <?php endif; ?>
+
+        <?php if (isset($_SESSIOM['login_attempts'])): ?>
+            <div class="warning-message">
+                남은 시도 횟수: <?php echo (5 - $_SESSIOM['login_attempts']) ?>회
+            </div>
+        <?php endif; ?>
+
         <form method="POST" action="login.php" class="form_css">
             <!--CSRF 토큰 추가-->
             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']) ?>">
