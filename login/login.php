@@ -65,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             error_log("로그인 실패 - User: {$userid}, IP: {$_SERVER['REMOTE_ADDR']}, Attempts: {$_SESSION['login_attempts']}");
 
             //실패 횟수 업데이트
-            $fail_sql = "UPDATE users SET login_attemps = login_attempts +1 WHERE userid = :userid";
+            $fail_sql = "UPDATE users SET login_attempts = login_attempts + 1 WHERE userid = :userid";
             $stmt = $conn->prepare($fail_sql);
             $stmt->bindParam(':userid', $userid);
             $stmt->execute();

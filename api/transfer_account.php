@@ -112,7 +112,7 @@ try {
     $stmt->execute();
 
     //거래기록
-    $transfer_sql = "INSERT INTO transfers (sender_account_id, receiver_account, amount, transfer_date, status_id, ip_address) VALUES (:sender_account_id, :receiver_account, :transfer_amount, NOW(), 2, :ip_address)";
+    $transfer_sql = "INSERT INTO transfers (sender_account_id, receiver_account, amount, transfer_date, status_id, ip) VALUES (:sender_account_id, :receiver_account, :transfer_amount, NOW(), 2, :ip_address)";
     $stmt_transfer = $conn->prepare($transfer_sql);
     $stmt_transfer->bindParam(":sender_account_id", $sender_account_id);
     $stmt_transfer->bindParam(":receiver_account", $account_number_in);
@@ -121,7 +121,7 @@ try {
     $stmt_transfer->execute();
 
     //출금내역 기록
-    $history_out = "INSERT INTO transactions(account_id, transaction_type_id, amount, amount_after, receiver_account, transaction_date, ip_address) VALUES (:sender_account_id, 2, :transfer_amount, :new_balance, :account_number_in, NOW(), :ip_address)";
+    $history_out = "INSERT INTO transactions(account_id, transaction_type_id, amount, amount_after, receiver_account, transaction_date, ip) VALUES (:sender_account_id, 2, :transfer_amount, :new_balance, :account_number_in, NOW(), :ip_address)";
     $stmt_history_out = $conn->prepare($history_out);
     $stmt_history_out->bindParam(":sender_account_id", $sender_account_id);
     $stmt_history_out->bindParam(":transfer_amount", $transfer_amount);
@@ -131,7 +131,7 @@ try {
     $stmt_history_out->execute();
 
     //입금내역 기록
-    $history_in = "INSERT INTO transactions(account_id, transaction_type_id, amount, amount_after, receiver_account, transaction_date, ip_address) VALUES(:receiver_account_id, 1, :transfer_amount, :new_balance, :account_number_in, NOW(), :ip_address)";
+    $history_in = "INSERT INTO transactions(account_id, transaction_type_id, amount, amount_after, receiver_account, transaction_date, ip) VALUES(:receiver_account_id, 1, :transfer_amount, :new_balance, :account_number_in, NOW(), :ip_address)";
     $stmt_history_in = $conn->prepare($history_in);
     $stmt_history_in->bindParam(":receiver_account_id", $receiver_account_id);
     $stmt_history_in->bindParam(":transfer_amount", $transfer_amount);
