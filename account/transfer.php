@@ -1,8 +1,8 @@
 <?php
 include "../dbconn.php";
 if (!isset($_SESSION["userid"]) || !isset($_SESSION["username"])) {
-    echo "로그인이 필요합니다.";
-    echo "<script>location.href = '../login/login.php';</script>";
+    header("Location: ../login/login.php");
+    exit;
 }
 $select_user_num = $_SESSION['user_num'];
 ?>
@@ -11,6 +11,13 @@ $select_user_num = $_SESSION['user_num'];
 <html>
 
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';">
+    <title>계좌이체</title>
     <script src="../javascript/transfer.js"></script>
     <link rel="stylesheet" href="../css/back.css">
     <link rel="stylesheet" href="../css/input.css">
@@ -29,7 +36,6 @@ $select_user_num = $_SESSION['user_num'];
             <li><a href="../index.php">홈</a></li>
             <li>|</li>
             <?php
-            include "../dbconn.php";
             if (isset($_SESSION['username'])): ?>
                 <li><a href="../account/users.php"><?php echo htmlspecialchars($_SESSION['username']); ?></a>님</li>
                 <li>|</li>
@@ -41,36 +47,27 @@ $select_user_num = $_SESSION['user_num'];
     </div>
     <div class="container">
         <h2 class="h2_pageinfo">송금</h2>
-        <form class="form_css" method="POST">
+        <form class="form_css" method="POST" onsubmit="return transferSubmit(event)">
             <!--CSRF 토큰 삽입-->
             <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
             <div> <!--출금계좌선택-->
-                <label class="input">출금계좌번호</label>
-                <select class="select" id="out_account" name="out_account">
+                <label class="input" for="out_account">출금계좌번호</label>
+                <select class="select" id="out_account" name="out_account" required>
                     <option value="">선택하세요</option>
                     <?php
-                    if ($select_user_num) {
-                        $query = "SELECT * FROM accounts WHERE user_num = :select_user_num";
+                    try {
+                        $query = "SELECT account_number, balance FROM accounts WHERE user_num = :select_user_num";
                         $stmt = $conn->prepare($query);
                         $stmt->bindParam(":select_user_num", $select_user_num);
                         $stmt->execute();
                         $balance = 0;
 
-                        if ($stmt->rowCount() > 0) {
-                            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                                $balance = $row['balance'];
-                                ?>
-                                <option value="<?= $row['account_number'] ?>"><?= $row['account_number'] ?></option>
-                                <?php
-                            }
-                        } else if ($balance < $transfer_amount) {
-                            die("잔액이 부족합니다.");
-                        } else {
-                            echo "<option value=''>계좌가 없습니다.</option>";
+                        while ($row = $stmt->fetch()) {
+                            echo '<option value="' . htmlspecialchars($row['account_number']) . '">' . htmlspecialchars($row['account_number']) . '</option>';
                         }
-
-                    } else {
-                        echo "<option value=''>user_num이 전달되지 않았습니다.</option>";
+                    } catch (PDOException $e) {
+                        error_log("계좌 조회 오류: " . $e->getMessage());
+                        echo '<option value="">계좌 정보를 불러올 수 없습니다.</option>';
                     } ?>
                 </select>
                 <div class="align-right-input">
@@ -79,20 +76,30 @@ $select_user_num = $_SESSION['user_num'];
                 </div>
             </div>
             <div> <!--입금계좌번호 입력-->
-                <label class="input">입금계좌번호</label>
-                <input class="input_text" type="text" id="in_account" name="in_account" required>
+                <label class="input" for="in_account">입금계좌번호</label>
+                <input class="input_text" type="text" id="in_account" name="in_account" pattern="[0-9]{10,14}"
+                    maxlength="14" required oninput="this.value = this.value.replace(/[^0-9]/g, '')">
             </div>
             <div> <!--이체금액 입력-->
-                <label class="input">이체금액</label>
-                <input class="input_text" type="number" id="transfer_amount" name="transfer_amount" required>
+                <label class="input" for="transfer_amount">이체금액</label>
+                <input class="input_text" type="number" id="transfer_amount" name="transfer_amount" min="1"
+                    max="100000000" required oninput="validateAmount(this)">
             </div>
             <div><!--비밀번호 입력-->
-                <label class="input">계좌 비밀번호 입력</label>
-                <input class="input_text" type="password" id="input_password" name="input_password" required>
+                <label class="input" for="input_password">계좌 비밀번호 입력</label>
+                <input class="input_text" type="password" id="input_password" name="input_password" pattern="[0-9]{4}"
+                    maxlength="4" required oninput="this.value = this.value.replace(/[^0-9]/g, '')">
             </div>
-            <button class="submit_button" type="submit" onclick="transferSubmit()">이체하기</button>
+            <button class="submit_button" type="submit">이체하기</button>
         </form>
     </div>
+
+    <script>
+        function validateAmount(input) {
+            if (input.value < 0) input.value = 0;
+            if (input.value > 100000000) input.value = 100000000;
+        }
+    </script>
 </body>
 
 </html>
