@@ -37,7 +37,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (!preg_match('/^\d{3}$/', $phone1) || !preg_match('/^\d{4}$/', $phone2) || !preg_match('/^\d{4}$/', $phone3)) {
         die("유효하지 않은 전화번호 형식입니다.");
     }
-    if (!preg_match('/^\d{6}$/', $bitrh)) {
+    if (!preg_match('/^\d{6}$/', $birth)) {
         die("유효하지 않은 생년월일 형식입니다.");
     }
 
@@ -62,7 +62,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->bindParam(':password', $hashed_password);
         $stmt->bindParam(':email', $email);
         $stmt->bindParam(':phone_number', $phone_number);
-        $stmt->bindParam(':birth', $bitrh);
+        $stmt->bindParam(':birth', $birth);
         $stmt->execute();
 
         //로그 기록
@@ -179,8 +179,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <label class="input" for="password">비밀번호:</label>
                 <div id="passError" class="error"></div> <!--입력 값 확인 메시지 출력-->
                 <input class="input_text" type="password" name="password" maxlength="20" id="password"
-                    pattern="(?=.*\d)(?=.*[a-zA-Z)(?=.*[!@#$%^&*(),.?\" :{}|<>]).{8,}" title="영문, 숫자, 특수문자 포함 8자리 이상"
-                placeholder="영문, 숫자, 특수문자 포함 8자리 이상 입력" required>
+                    pattern="(?=.*\d)(?=.*[a-zA-Z)(?=.*[!@#$%^&*(),.?\ :{}|<>]).{8,}" title="영문, 숫자, 특수문자 포함 8자리 이상"
+                    placeholder="영문, 숫자, 특수문자 포함 8자리 이상 입력" required>
             </div>
 
             <div> <!--이메일 입력-->
@@ -195,10 +195,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <div id="phoneError" class="error"></div> <!--입력 값 확인 메시지 출력-->
                 <div id="phoneNum">
                     <input type="text" name="phone1" size="3" id="phone1" maxlength="3" pattern="\d{3}" title="3자리 숫자"
-                        oninput="this.value=this.value.replace(/[^0-9]/g,''); nextPhone1();" required>
+                        oninput="this.value=this.value.replace(/[^0-9]/g,'');" required>
                     <span>-</span>
                     <input type="text" name="phone2" size="4" id="phone2" maxlength="4" pattern="\d{4}" title="4자리 숫자"
-                        oninput="this.value=this.value.replace(/[^0-9]/g,''); nextPhone2();" required>
+                        oninput="this.value=this.value.replace(/[^0-9]/g,'');" required>
                     <span>-</span>
                     <input type="text" name="phone3" size="4" id="phone3" maxlength="4" pattern="\d{4}" title="4자리 숫자"
                         oninput="this.value=this.value.replace(/[^0-9]/g,'');" required>
