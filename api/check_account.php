@@ -1,7 +1,7 @@
 <?php
-session_start();
 include "../dbconn.php";
 header('Content-Type: application/json');
+
 if (isset($_GET['account_number'])) {
     $account_number = $_GET['account_number'];
     try {

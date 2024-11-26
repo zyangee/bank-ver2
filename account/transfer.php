@@ -1,8 +1,8 @@
 <?php
-session_start();
 include "../dbconn.php";
 if (!isset($_SESSION["userid"]) || !isset($_SESSION["username"])) {
     echo "로그인이 필요합니다.";
+    echo "<script>location.href = '../login/login.php';</script>";
 }
 $select_user_num = $_SESSION['user_num'];
 ?>
@@ -31,7 +31,7 @@ $select_user_num = $_SESSION['user_num'];
             <?php
             include "../dbconn.php";
             if (isset($_SESSION['username'])): ?>
-                <li><a href="../account/users.php"><?php echo $_SESSION['username']; ?></a>님</li>
+                <li><a href="../account/users.php"><?php echo htmlspecialchars($_SESSION['username']); ?></a>님</li>
                 <li>|</li>
                 <li><a href="../login/logout.php">로그아웃</a></li>
             <?php else: ?>
@@ -42,6 +42,8 @@ $select_user_num = $_SESSION['user_num'];
     <div class="container">
         <h2 class="h2_pageinfo">송금</h2>
         <form class="form_css" method="POST">
+            <!--CSRF 토큰 삽입-->
+            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
             <div> <!--출금계좌선택-->
                 <label class="input">출금계좌번호</label>
                 <select class="select" id="out_account" name="out_account">
@@ -52,13 +54,17 @@ $select_user_num = $_SESSION['user_num'];
                         $stmt = $conn->prepare($query);
                         $stmt->bindParam(":select_user_num", $select_user_num);
                         $stmt->execute();
+                        $balance = 0;
 
                         if ($stmt->rowCount() > 0) {
                             while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                                $balance = $row['balance'];
                                 ?>
                                 <option value="<?= $row['account_number'] ?>"><?= $row['account_number'] ?></option>
                                 <?php
                             }
+                        } else if ($balance < $transfer_amount) {
+                            die("잔액이 부족합니다.");
                         } else {
                             echo "<option value=''>계좌가 없습니다.</option>";
                         }

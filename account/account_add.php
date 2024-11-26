@@ -22,7 +22,7 @@ include "../api/random_account.php";
             <?php
             include "../dbconn.php";
             if (isset($_SESSION['username'])): ?>
-                <li><a href="../account/users.php"><?php echo $_SESSION['username']; ?></a>님</li>
+                <li><a href="../account/users.php"><?php echo htmlspecialchars($_SESSION['username']); ?></a>님</li>
                 <li>|</li>
                 <li><a href="../login/logout.php">로그아웃</a></li>
             <?php else: ?>
@@ -33,17 +33,19 @@ include "../api/random_account.php";
     <div class="container">
         <h2 class="h2_pageinfo">계좌 생성</h2>
         <form class="form_css" action="" onsubmit="submitForm(event)" method="POST">
+            <!--CSRF 토큰 삽입-->
+            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
             <div id="section">
                 <div>
                     <label class="input">이름</label> <!--DB에 있는 이름 그대로 가져오기-->
                     <input class="input_text" type="text" id="username" name="username"
-                        value="<?php echo $_SESSION['username'] ?>" readonly>
+                        value="<?php echo htmlspecialchars($_SESSION['username']); ?>" readonly>
                 </div>
 
                 <label class="input">주민번호</label>
                 <div class="align-right-input">
                     <input type="text" id="resident-number1" name="resident-number1"
-                        value="<?php echo ($resident_number1) ?>">
+                        value="<?php echo htmlspecialchars($resident_number1) ?>" required>
                     <span>-</span>
                     <input type="text" id="resident-number2" name="resident-number2" maxlength="7"
                         value="<?php echo !empty($resident_number2) ? htmlspecialchars($resident_number2) : ''; ?>"
