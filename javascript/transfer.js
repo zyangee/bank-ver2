@@ -37,7 +37,7 @@ async function myAccount() {
     );
 
     if (!response.ok) {
-      throw new Error("reponse 오류");
+      throw new Error("서버 응답 오류가 발생했습니다.");
     }
 
     //data
@@ -111,7 +111,7 @@ async function transferSubmit(event) {
       }),
     });
     if (!response.ok) {
-      throw new Error("response 오류");
+      throw new Error("서버 응답 오류가 발생했습니다.");
     }
     const data = await response.json();
     if (data.success) {

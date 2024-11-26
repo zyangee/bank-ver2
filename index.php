@@ -1,5 +1,14 @@
 <?php
-session_start();
+require_once "dbconn.php";
+
+//세션 상태 검증
+if (!isset($_SESSION['last_activity']) || (time() - $_SESSION['last_activity'] > 1800)) {
+    session_unset();
+    session_destroy();
+    header("Location: login/login.php");
+    exit();
+}
+$_SESSION['last_activity'] = time();
 ?>
 
 <!DOCTYPE html>
@@ -8,9 +17,14 @@ session_start();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline';">
+
     <title>main</title>
     <link rel="stylesheet" href="css/back.css">
-    <style>
+    <!--CSP 강화-->
+    <style nonce="<?php echo $_SESSION['css_nonce'] ?>">
         .category-container {
             display: flex;
             justify-content: center;
@@ -76,9 +90,8 @@ session_start();
         <span>megabank</span>
         <ul>
             <?php
-            include "dbconn.php";
             if (isset($_SESSION['username'])): ?>
-                <li><a href="account/users.php"><?php echo $_SESSION['username']; ?></a>님</li>
+                <li><a href="account/users.php"><?php echo htmlspecialchars($_SESSION['username']); ?></a>님</li>
                 <li>|</li>
                 <li><a href="login/logout.php">로그아웃</a></li>
             <?php else: ?>
@@ -88,29 +101,38 @@ session_start();
     </div>
 
     <div class="category-container" id="category-container">
-        <div class="category">
-            <div class="category-header">계좌</div>
-            <ul>
-                <li><a href="account/account_add.php">계좌 생성</a></li>
-                <li><a href="account/transfer.php">송금</a></li>
-                <li><a href="account/transactions.php">거래 내역</a></li>
-            </ul>
-        </div>
-        <div class="category">
-            <div class="category-header">대출</div>
-            <ul>
-                <li><a href="loans/loan_application.php">대출 신청</a></li>
-                <li><a href="loans/loan_history.php">대출 조회</a></li>
-                <li><a href="loans/loan_product.php">대출 상품 조회</a></li>
-            </ul>
-        </div>
-        <div class="category">
-            <div class="category-header">계정</div>
-            <ul>
-                <li><a href="account/users.php">계좌 정보</a></li>
-                <li><a href="account/change_password.php">비밀번호 변경</a></li>
-            </ul>
-        </div>
+        <?php if (isset($_SESSION['userid'])): ?>
+            <div class="category">
+                <div class="category-header">계좌</div>
+                <ul>
+                    <li><a href="account/account_add.php">계좌 생성</a></li>
+                    <li><a href="account/transfer.php">송금</a></li>
+                    <li><a href="account/transactions.php">거래 내역</a></li>
+                </ul>
+            </div>
+            <div class="category">
+                <div class="category-header">대출</div>
+                <ul>
+                    <li><a href="loans/loan_application.php">대출 신청</a></li>
+                    <li><a href="loans/loan_history.php">대출 조회</a></li>
+                    <li><a href="loans/loan_product.php">대출 상품 조회</a></li>
+                </ul>
+            </div>
+            <div class="category">
+                <div class="category-header">계정</div>
+                <ul>
+                    <li><a href="account/users.php">계좌 정보</a></li>
+                    <li><a href="account/change_password.php">비밀번호 변경</a></li>
+                </ul>
+            </div>
+        <?php else: ?>
+            <div class="category">
+                <div class="category-header">서비스 이용 안내</div>
+                <li>서비스 이용을 위해서는 로그인이 필요합니다.</li>
+                <li><a href="login/login.php">로그인 하러가기</a></li>
+                </ul>
+            </div>
+        <?php endif; ?>
     </div>
 </body>
 

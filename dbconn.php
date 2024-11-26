@@ -28,8 +28,8 @@ if (empty($_SESSION['csrf_token'])) {
 }
 
 // CSRF 토큰 검증
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!hash_equals($_POST['csrf_token'], $_SESSION['csrf_token'] ?? '')) {
+if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!isset($_POST['csrf_token']) || !hash_equals($_POST['csrf_token'], $_SESSION['csrf_token'])) {
         error_log("CSRF 공격 시도 감지: " . $_SERVER['REMOTE_ADDR']);
         http_response_code(403);
         die("보안 검증에 실패했습니다.");
