@@ -146,7 +146,7 @@ if ($row > 0) {
                 if ($stmt_update->execute() === TRUE) {
                     $conn->commit();
                     echo "<script>alert('계좌가 생성되었습니다.');</script>";
-                    echo "<script>location.href = '../users.php';</script>";
+                    echo "<script>location.href = '../account/users.php';</script>";
                     exit;
                 }
             }
