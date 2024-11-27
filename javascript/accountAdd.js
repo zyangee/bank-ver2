@@ -161,17 +161,13 @@ function submitForm(event) {
   ];
   if (validations.every(Boolean)) {
     const form = event.target;
-    const csrfToken = form.querySelector('input[name="csrf_token"]').value;
-    const formInputs = form.getElementsByTagName("input");
-
-    for (let input of formInputs) {
-      if (
-        input.type !== "submit" &&
-        input.type !== "radio" &&
-        input.name !== "csrf_token"
-      ) {
-        input.value = escapeHtml(input.value);
-      }
+    if (!form.action) {
+      form.action = "../api/random_account.php";
+    }
+    const formData = new FormData(form);
+    if (!formData.get("csrf_token")) {
+      console.error("CSRF token이 없습니다.");
+      return false;
     }
     form.submit();
   } else {

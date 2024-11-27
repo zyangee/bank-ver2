@@ -93,7 +93,12 @@ if ($row > 0) {
             error_log("Session CSRF Token: " . $_SESSION['csrf_token']);
             error_log("Posted CSRF Token: " . $_POST['csrf_token']);
 
-            if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+            if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token'])) {
+                throw new Exception("CSRF 토큰이 없습니다.");
+            }
+
+            if (!hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+                error_log("CSRF Token Mismatch - Session: " . $_SESSION['csrf_token'] . ", Post: " . $_POST['csrf_token']);
                 throw new Exception("보안 검증에 실패했습니다. (CSRF 토큰 불일치)");
             }
 

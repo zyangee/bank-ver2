@@ -36,8 +36,7 @@ include "../api/random_account.php";
     </div>
     <div class="container">
         <h2 class="h2_pageinfo">계좌 생성</h2>
-        <form class="form_css" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>"
-            onsubmit="return submitForm(event)" method="POST">
+        <form class="form_css" action="../api/random_account.php" onsubmit="return submitForm(event)" method="POST">
             <!--CSRF 토큰 삽입-->
             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
             <div id="section">

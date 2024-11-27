@@ -3,6 +3,16 @@
 ini_set('display_errors', 0);
 error_reporting(E_ALL);
 
+//세션 설정 강화
+ini_set('session.cookie_httponly', 1);
+ini_set('session.cookie_secure', 1);
+ini_set('session.use_only_cookies', 1);
+ini_set('session.cookie_samesite', 'Strict');
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 $serverName = "210.217.27.205"; //데이터베이스 서버 공인ip
 $database = "bank";
 $uid = "bankuser1";
@@ -13,16 +23,6 @@ header("X-Content-Type-Options: nosniff");
 header("X-Frame-Options: DENY");
 header("X-XSS-Protection: 1; mode=block");
 header("Strict-Transport-Security: max-age=31536000; includeSubDomains");
-
-//세션 설정 강화
-ini_set('session.cookie_httponly', 1);
-ini_set('session.cookie_secure', 1);
-ini_set('session.use_only_cookies', 1);
-ini_set('session.cookie_samesite', 'Strict');
-
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
 
 // CSRF 토큰 생성
 if (empty($_SESSION['csrf_token'])) {
