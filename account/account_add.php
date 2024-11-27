@@ -3,7 +3,7 @@ include "../dbconn.php";
 include "../api/random_account.php";
 
 //세션 검증
-if (!isset($_SESSIOM['user_num'])) {
+if (!isset($_SESSION['user_num'])) {
     header("Location: ../login/login.php");
     exit();
 }

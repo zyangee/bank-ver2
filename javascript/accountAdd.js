@@ -161,14 +161,28 @@ function submitForm(event) {
   ];
   if (validations.every(Boolean)) {
     const form = event.target;
-    if (!form.action) {
-      form.action = "../api/random_account.php";
-    }
     const formData = new FormData(form);
-    if (!formData.get("csrf_token")) {
-      console.error("CSRF token이 없습니다.");
+
+    const csrfToken = formData.get("csrf_token");
+    if (!csrfToken) {
+      console.error("CSRF token is missing");
+      alert("보안 토큰이 누락되었습니다. 페이지를 새로고침해주세요.");
       return false;
     }
+
+    // 입력값 이스케이프 처리
+    const formInputs = form.getElementsByTagName("input");
+    for (let input of formInputs) {
+      if (
+        input.type !== "submit" &&
+        input.type !== "radio" &&
+        input.type !== "hidden" &&
+        input.name !== "csrf_token"
+      ) {
+        input.value = escapeHtml(input.value);
+      }
+    }
+    //폼 제출
     form.submit();
   } else {
     alert("모든 필수 항목을 올바르게 입력해주세요.");
