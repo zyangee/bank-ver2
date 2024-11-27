@@ -1,10 +1,4 @@
 <?php
-session_start();
-ini_set('session.cookie_httponly', 1);
-ini_set('session.cookie_secure', 1);
-ini_set('session.use_strict_mode', 1);
-ini_set('session.cookie_samesite', 'Strict');
-
 $inactive = 1800;
 if (isset($_SESSION['timeout'])) {
     if (time() - $_SESSION['timeout'] > $inactive) {
@@ -95,8 +89,8 @@ if ($row > 0) {
             if (!checkRateLimit()) {
                 throw new Exception("계좌 생성 요청이 너무 많습니다. 잠시 후 다시 시도해주세요.");
             }
-            if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
-                throw new Exception("잘못된 접근입니다.");
+            if (!isset($_POST['csrf_token']) || !hash_equals($_POST['csrf_token'], $_SESSION['csrf_token'])) {
+                throw new Exception("보안 검증에 실패했습니다.");
             }
 
             //입력값 검증
@@ -148,7 +142,7 @@ if ($row > 0) {
             throw new Exception("계좌 생성에 실패하였습니다.");
         } catch (Exception $e) {
             $conn->rollBack();
-            error_log("계좌생성에러: " . $e->getMessage());
+            error_log("계좌생성 에러 - Message: " . $e->getMessage() . ", POST data: " . print_r($_POST, true) . ", Session data: " . print_r($_SESSION, true));
             echo "<script>alert('" . htmlspecialchars($e->getMessage()) . "');</script>";
         }
     }

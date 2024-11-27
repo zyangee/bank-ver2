@@ -160,13 +160,15 @@ function submitForm(event) {
     validCheck(),
   ];
   if (validations.every(Boolean)) {
-    const formInputs = event.target.getElementsByTagName("input");
-    for (let input of formInputs) {
-      if (input.type !== "submit" && input.type !== "radio") {
-        input.value = escapeHtml(input.value);
+    const form = event.target;
+    const formData = new FormData(form);
+
+    for (let [key, value] of formData.entries()) {
+      if (key !== "csrf_token" && key !== "submit") {
+        formData.set(key, escapeHtml(value));
       }
     }
-    event.target.submit();
+    form.submit();
   } else {
     alert("모든 필수 항목을 올바르게 입력해주세요.");
   }

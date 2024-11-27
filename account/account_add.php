@@ -37,7 +37,8 @@ include "../api/random_account.php";
     </div>
     <div class="container">
         <h2 class="h2_pageinfo">계좌 생성</h2>
-        <form class="form_css" action="" onsubmit="return submitForm(event)" method="POST">
+        <form class="form_css" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>"
+            onsubmit="return submitForm(event)" method="POST">
             <!--CSRF 토큰 삽입-->
             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
             <div id="section">
@@ -98,15 +99,15 @@ include "../api/random_account.php";
                     <div class="radio_check"> <!--체크옵션 1-->
                         <label class="input">타인으로부터 통장대여 요청을 받은 사실이 있나요?</label>
                         <div>
-                            <input type="radio" name="check1" value="예" required>예
-                            <input type="radio" name="check1" value="아니오">아니오
+                            <input type="radio" name="check1" value="예">예
+                            <input type="radio" name="check1" value="아니오" required>아니오
                         </div>
                     </div>
                     <div class="radio_check"> <!--체크옵션 2-->
                         <label class="input">타인으로부터 통장개설을 요청받은 사실이 있나요?</label>
                         <div>
-                            <input type="radio" name="check2" value="예" required>예
-                            <input type="radio" name="check2" value="아니오">아니오
+                            <input type="radio" name="check2" value="예">예
+                            <input type="radio" name="check2" value="아니오" required>아니오
                         </div>
                     </div>
                     <div id="check-error" class="error"></div><!--check 옵션 선택 에러메시지-->
