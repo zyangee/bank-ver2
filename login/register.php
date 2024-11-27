@@ -84,7 +84,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($e->getCode() == 23000) {
             die("이미 사용중인 아이디입니다.");
         } else {
-            die("회원가입 처리 중 오류가 발생했습니다." . $e->getMessage() . "\nSQL: " . $sql . "\nParameters: " . print_r([$userid, $username, $email, $phone_number, $birth], true));
+            die("회원가입 처리 중 오류가 발생했습니다.");
         }
     }
 }

@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             unset($_SESSION['last_attempt']);
 
             // 로그인 성공 시 last_login 업데이트
-            $update_sql = "UPDATE users SET last_login = NOW(), last_ip = :ip, login_attempts = 0 WHERE userid = :userid";
+            $update_sql = "UPDATE users SET last_login = NOW(), ip = :ip, login_attempts = 0 WHERE userid = :userid";
             $stmt = $conn->prepare($update_sql);
             $stmt->bindParam(':userid', $userid);
             $stmt->bindParam(':ip', $_SERVER['REMOTE_ADDR']);
