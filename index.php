@@ -24,7 +24,7 @@ $_SESSION['last_activity'] = time();
     <title>main</title>
     <link rel="stylesheet" href="css/back.css">
     <!--CSP 강화-->
-    <style nonce="<?php echo $_SESSION['css_nonce'] ?>">
+    <style>
         .category-container {
             display: flex;
             justify-content: center;

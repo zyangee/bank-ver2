@@ -7,13 +7,24 @@ if (!isset($_SERVER['HTTP_X_REQUESTED_WITH']) || strtolower($_SERVER['HTTP_X_REQ
     die('직접적인 접근이 금지되었습니다.');
 }
 
-session_start();
-
 //세션 검증
 if (!isset($_SESSION['userid']) || !isset($_SESSION['user_num'])) {
     http_response_code(401);
-    die(json_encode(['error' => '인증이 필요합니다']));
+    die(json_encode(['error' => '인증이 필요합니다', 'redirect' => '../login/login.php']));
 }
+
+// 세션 타임아웃 체크
+$inactive = 1800; // 30분
+if (isset($_SESSION['timeout']) && (time() - $_SESSION['timeout'] > $inactive)) {
+    session_unset();
+    session_destroy();
+    http_response_code(401);
+    die(json_encode([
+        'error' => '세션이 만료되었습니다',
+        'redirect' => '../login/login.php'
+    ]));
+}
+$_SESSION['timeout'] = time();
 
 //POST 요청 확인
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

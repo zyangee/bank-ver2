@@ -41,18 +41,21 @@ async function myAccount() {
     });
 
     console.log("Response status: ", response.status);
+    //data
+    const data = await response.json();
 
     if (response.status === 401) {
-      window.location.href = "../login/login.php";
+      if (data.redirect) {
+        window.location.href = data.redirect;
+      } else {
+        window.location.href = "../login/login.php";
+      }
       return;
     }
 
     if (!response.ok) {
       throw new Error("서버 응답 오류가 발생했습니다.");
     }
-
-    //data
-    const data = await response.json();
     if (data.error) {
       throw new Error(data.error);
     }

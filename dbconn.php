@@ -9,9 +9,18 @@ if (session_status() === PHP_SESSION_NONE) {
     ini_set('session.cookie_secure', 1);
     ini_set('session.use_only_cookies', 1);
     ini_set('session.cookie_samesite', 'Strict');
+    ini_set('session.gc_maxlifetime', 1800);
 
     session_start();
 }
+
+// 세션이 유효한지 확인
+if (isset($_SESSION['timeout']) && (time() - $_SESSION['timeout'] > 1800)) {
+    session_unset();
+    session_destroy();
+    session_start();
+}
+$_SESSION['timeout'] = time();
 
 // CSRF 토큰 생성
 if (empty($_SESSION['csrf_token'])) {
