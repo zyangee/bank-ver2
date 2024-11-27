@@ -1,4 +1,6 @@
 <?php
+include "../dbconn.php";
+
 $inactive = 1800;
 if (isset($_SESSION['timeout'])) {
     if (time() - $_SESSION['timeout'] > $inactive) {
@@ -10,8 +12,6 @@ if (isset($_SESSION['timeout'])) {
 }
 $_SESSION['timeout'] = time();
 session_regenerate_id(true);
-
-include "../dbconn.php";
 
 if (!isset($_SESSION['user_num'])) {
     header("Location: ../login/login.php");
@@ -89,8 +89,12 @@ if ($row > 0) {
             if (!checkRateLimit()) {
                 throw new Exception("계좌 생성 요청이 너무 많습니다. 잠시 후 다시 시도해주세요.");
             }
-            if (!isset($_POST['csrf_token']) || !hash_equals($_POST['csrf_token'], $_SESSION['csrf_token'])) {
-                throw new Exception("보안 검증에 실패했습니다.");
+            error_log("POST Data: " . print_r($_POST, true));
+            error_log("Session CSRF Token: " . $_SESSION['csrf_token']);
+            error_log("Posted CSRF Token: " . $_POST['csrf_token']);
+
+            if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+                throw new Exception("보안 검증에 실패했습니다. (CSRF 토큰 불일치)");
             }
 
             //입력값 검증

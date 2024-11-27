@@ -1,5 +1,4 @@
 <?php
-include "../dbconn.php";
 include "../api/random_account.php";
 ?>
 

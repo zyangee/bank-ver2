@@ -161,11 +161,16 @@ function submitForm(event) {
   ];
   if (validations.every(Boolean)) {
     const form = event.target;
-    const formData = new FormData(form);
+    const csrfToken = form.querySelector('input[name="csrf_token"]').value;
+    const formInputs = form.getElementsByTagName("input");
 
-    for (let [key, value] of formData.entries()) {
-      if (key !== "csrf_token" && key !== "submit") {
-        formData.set(key, escapeHtml(value));
+    for (let input of formInputs) {
+      if (
+        input.type !== "submit" &&
+        input.type !== "radio" &&
+        input.name !== "csrf_token"
+      ) {
+        input.value = escapeHtml(input.value);
       }
     }
     form.submit();
