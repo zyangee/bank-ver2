@@ -1,11 +1,28 @@
 <?php
 session_start();
 include "../dbconn.php";
-// 사용자 ID는 세션에서 가져온다고 가정합니다.
-$user_num = $_SESSION['user_num'];
+
+//세션 체크 및 권한 검증
+if (!isset($_SESSION['user_num'])) {
+    header("Location: ../login/login.php");
+    exit();
+}
+
+//세션 하이재킹 방지
+session_regenerate_id(true);
+
+//비활성 세션 처리
+$inactive = 1800; //30분
+if (isset($_SESSION['timeout']) && (time() - $_SESSION['timeout'] > $inactive)) {
+    session_unset();
+    session_destroy();
+    header("Location: ../login/login.php");
+    exit();
+}
+$_SESSION['timeout'] = time();
 
 // 사용자 정보를 가져오는 SQL 쿼리
-$sql = "SELECT username, phone_number, userid, email, date_of_birth, account_created_at, last_login, password 
+$sql = "SELECT username, phone_number, userid, email, date_of_birth, account_created_at, last_login 
         FROM users 
         WHERE user_num = :user_num";
 
@@ -16,38 +33,22 @@ try {
 
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if ($user) {
-        // 사용자 정보 변수 설정
-        $username = $user['username'];
-        $phone_number = $user['phone_number'];
-        $email = $user['email'];
-        $dob = $user['date_of_birth'];
-        $join_date = $user['account_created_at'];
-        $last_login = $user['last_login'];
-        $plainPassword = $user['password']; // 저장된 평문 비밀번호
-    } else {
-        die("사용자 정보를 찾을 수 없습니다.");
+    if (!$user) {
+        error_log("유저 정보를 찾을 수 없습니다. : " . $_SESSION['user_num']);
+        header("Location: ../login/logout.php");
+        exit();
     }
-} catch (Exception $e) {
-    echo "쿼리 오류: " . $e->getMessage();
-    exit;
-}
 
-?>
-
-<?php
-// 계좌 정보를 가져오는 SQL 쿼리
-$sqlAccounts = "SELECT account_number, balance, created_at FROM accounts WHERE user_num = :user_num";
-
-try {
+    //계좌 정보를 가져오는 SQL 쿼리
+    $sqlAccounts = "SELECT account_number, balance, created_at FROM accounts WHERE user_num = :user_num";
     $stmtAccounts = $conn->prepare($sqlAccounts);
-    $stmtAccounts->bindParam(':user_num', $user_num); // user_id를 user_num으로 사용
+    $stmtAccounts->bindParam(':user_num', $user_num);
     $stmtAccounts->execute();
 
     $accounts = $stmtAccounts->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {
-    echo "계좌 조회 오류: " . $e->getMessage();
-    exit;
+    error_log("Database error: " . $e->getMessage());
+    die("시스템 오류가 발생했습니다. 나중에 다시 시도해주세요.");
 }
 ?>
 
@@ -57,6 +58,10 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline';">
+
     <title>계정 관리</title>
     <link rel="stylesheet" href="../css/back.css">
     <link rel="stylesheet" href="../css/input.css">
@@ -70,10 +75,8 @@ try {
             <ul>
                 <li><a href="../index.php">홈</a></li>
                 <li>|</li>
-                <?php
-                include "dbconn.php";
-                if (isset($_SESSION['username'])): ?>
-                    <li><a href="../account/users.php"><?php echo $_SESSION['username']; ?></a>님</li>
+                <?php if (isset($_SESSION['username'])): ?>
+                    <li><a href="../account/users.php"><?php echo htmlspecialchars($_SESSION['username']); ?></a>님</li>
                     <li>|</li>
                     <li><a href="../login/logout.php">로그아웃</a></li>
                 <?php else: ?>
@@ -89,27 +92,29 @@ try {
                 <table class="info-table">
                     <tr>
                         <th>이름</th>
-                        <td><?php echo ($username); ?></td>
+                        <td><?php echo htmlspecialchars($user['username']); ?></td>
                         <th>핸드폰 번호</th>
-                        <td><?php echo ($phone_number); ?></td>
+                        <td><?php echo htmlspecialchars($user['phone_number']); ?></td>
                     </tr>
                     <tr>
                         <th>사용자 ID</th>
-                        <td><?php echo ($user_num); ?></td>
+                        <td><?php echo htmlspecialchars($_SESSION['user_num']); ?></td>
                         <th>비밀번호 변경</th>
-                        <td><a href="change_password.php?user_num=<?php echo $user_num; ?>">비밀번호 변경</a></td>
+                        <td><a
+                                href="change_password.php?user_num=<?php echo htmlspecialchars($_SESSION['user_num']); ?>">비밀번호
+                                변경</a></td>
                     </tr>
                     <tr>
                         <th>이메일</th>
-                        <td><?php echo ($email); ?></td>
+                        <td><?php echo htmlspecialchars($user['email']); ?></td>
                         <th>생년월일</th>
-                        <td><?php echo ($dob); ?></td>
+                        <td><?php echo htmlspecialchars($user['date_of_birth']); ?></td>
                     </tr>
                     <tr>
                         <th>회원가입일</th>
-                        <td><?php echo ($join_date); ?></td>
+                        <td><?php echo htmlspecialchars($user['account_created_at']); ?></td>
                         <th>마지막 로그인</th>
-                        <td><?php echo ($last_login); ?></td>
+                        <td><?php echo htmlspecialchars($user['last_login']); ?></td>
                     </tr>
                 </table>
             </div>
@@ -125,9 +130,9 @@ try {
                 <?php if ($accounts): ?>
                     <?php foreach ($accounts as $account): ?>
                         <tr>
-                            <td><?php echo ($account['account_number']); ?></td>
-                            <td><?php echo ($account['balance']); ?> 원</td>
-                            <td><?php echo ($account['created_at']); ?></td>
+                            <td><?php echo htmlspecialchars($account['account_number']); ?></td>
+                            <td><?php echo number_format($account['balance']); ?> 원</td>
+                            <td><?php echo htmlspecialchars($account['created_at']); ?></td>
                         </tr>
                     <?php endforeach; ?>
                 <?php else: ?>
