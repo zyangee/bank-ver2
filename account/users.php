@@ -28,7 +28,7 @@ $sql = "SELECT username, phone_number, userid, email, date_of_birth, account_cre
 
 try {
     $stmt = $conn->prepare($sql);
-    $stmt->bindParam(':user_num', $user_num);
+    $stmt->bindParam(':user_num', $_SESSION['user_num']);
     $stmt->execute();
 
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -42,7 +42,7 @@ try {
     //계좌 정보를 가져오는 SQL 쿼리
     $sqlAccounts = "SELECT account_number, balance, created_at FROM accounts WHERE user_num = :user_num";
     $stmtAccounts = $conn->prepare($sqlAccounts);
-    $stmtAccounts->bindParam(':user_num', $user_num);
+    $stmtAccounts->bindParam(':user_num', $_SESSION['user_num']);
     $stmtAccounts->execute();
 
     $accounts = $stmtAccounts->fetchAll(PDO::FETCH_ASSOC);
