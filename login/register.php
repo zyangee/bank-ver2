@@ -53,17 +53,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         //전화번호 조합
         $phone_number = $phone1 . '-' . $phone2 . '-' . $phone3;
 
-        //SQL Injection 방지를 위한 Prepared Statement 사용
-        $sql = "INSERT INTO users(userid, username, password, email, phone_number, date_of_birth, login_attempts) VALUES(':userid', ':username', ':password', ':email', ':phone_number', ':birth', 0)";
+        //먼저 해당 아이디가 존재하는지 확인
+        $check_stmt = $conn->prepare("SELECT COUNT(*) FROM users WHERE userid = ?");
+        $check_stmt->execute([$userid]);
+        if ($check_stmt->fetchColumn() > 0) {
+            throw new Exception("이미 존재하는 아이디입니다.");
+        }
 
-        $stmt = $conn->prepare($sql);
-        $stmt->bindParam(':userid', $userid);
-        $stmt->bindParam(':username', $username);
-        $stmt->bindParam(':password', $hashed_password);
-        $stmt->bindParam(':email', $email);
-        $stmt->bindParam(':phone_number', $phone_number);
-        $stmt->bindParam(':birth', $birth);
-        $stmt->execute();
+        //SQL Injection 방지를 위한 Prepared Statement 사용
+        $stmt = $conn->prepare("INSERT INTO users (userid, username, password, email, phone_number, date_of_birth, login_attempts) VALUES(?, ?, ?, ?, ?, ?, 0)");
+        $stmt->execute([
+            $userid,
+            $username,
+            $hashed_password,
+            $email,
+            $phone_number,
+            $birth
+        ]);
 
         //로그 기록
         error_log("새 회원가입 완료 - User: {$userid}, IP: {$_SERVER['REMOTE_ADDR']}");
@@ -74,8 +80,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit();
     } catch (PDOException $e) {
         //쿼리 실행 실패 시 오류 메시지 출력
-        error_log("회원가입 오류 - " . $e->getMessage());
-        die("회원가입 처리 중 오류가 발생했습니다.");
+        error_log("회원가입 오류 - " . $e->getMessage() . "\nSQL: " . $sql . "\nParameters: " . print_r([$userid, $username, $email, $phone_number, $birth], true));
+        if ($e->getCode() == 23000) {
+            die("이미 사용중인 아이디입니다.");
+        } else {
+            die("회원가입 처리 중 오류가 발생했습니다." . $e->getMessage() . "\nSQL: " . $sql . "\nParameters: " . print_r([$userid, $username, $email, $phone_number, $birth], true));
+        }
     }
 }
 ?>

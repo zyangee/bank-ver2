@@ -2,6 +2,11 @@
 session_start();
 include "../dbconn.php";
 
+// X-Frame-Options 헤더 설정
+header("X-Frame-Options: DENY");
+// Content Security Policy 헤더 설정
+header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'");
+
 //로그인 시도 횟수 제한 확인
 if (isset($_SESSION['login_attempts']) && $_SESSION['login_attempts'] >= 5 && time() - $_SESSION['last_attempt'] < 300) {
     die("너무 많은 로그인 시도가 있었습니다. 5분 후에 다시 시도해주세요.");
@@ -87,8 +92,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <meta http-equiv="X-Frame-Options" content="DENY">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline';">
 
     <title>로그인</title>
     <link rel="stylesheet" href="../css/back.css">
@@ -101,8 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <ul>
             <li><a href="../index.php">홈</a></li>
             <li>|</li>
-            <?php
-            if (isset($_SESSION['username'])): ?>
+            <?php if (isset($_SESSION['username'])): ?>
                 <li><a href="../account/users.php"><?php echo htmlspecialchars($_SESSION['username']); ?></a>님</li>
                 <li>|</li>
                 <li><a href="logout.php">로그아웃</a></li>
@@ -117,13 +119,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="error_message"><?php echo htmlspecialchars($error_message); ?></div>
         <?php endif; ?>
 
-        <?php if (isset($_SESSIOM['login_attempts'])): ?>
+        <?php if (isset($_SESSION['login_attempts'])): ?>
             <div class="warning-message">
-                남은 시도 횟수: <?php echo (5 - $_SESSIOM['login_attempts']) ?>회
+                남은 시도 횟수: <?php echo (5 - $_SESSION['login_attempts']) ?>회
             </div>
         <?php endif; ?>
 
-        <form method="POST" action="login.php" class="form_css">
+        <form method="POST" action="login.php" class="form_css" id="loginForm">
             <!--CSRF 토큰 추가-->
             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']) ?>">
 
@@ -141,20 +143,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
     <script>
         //폼 유효성 검사
-        document.querySelector('form').addEventListener('submit', function (e) {
-            const userid = document.getElementById('userid').value;
-            const password = document.getElementById('password').value;
+        document.addEventListener('DOMContentLoaded', function () {
+            const loginForm = document.getElementById('loginForm');
+            loginForm.addEventListener('submit', function (e) {
+                const userid = document.getElementById('userid').value;
+                const password = document.getElementById('password').value;
 
-            if (!/^[A-Za-z0-9]{4,20}$/.test(userid)) {
-                alert('유효하지 않은 아이디 형식입니다.');
-                e.preventDefault();
-                return false;
-            }
-            if (password.length < 8) {
-                alert('비밀번호는 최소 8자 이상이어야 합니다.');
-                e.preventDefault();
-                return false;
-            }
+                if (!/^[A-Za-z0-9]{4,20}$/.test(userid)) {
+                    alert('유효하지 않은 아이디 형식입니다.');
+                    e.preventDefault();
+                    return false;
+                }
+                if (password.length < 8) {
+                    alert('비밀번호는 최소 8자 이상이어야 합니다.');
+                    e.preventDefault();
+                    return false;
+                }
+            });
         });
     </script>
 </body>
