@@ -1,11 +1,29 @@
 <?php
 include "../dbconn.php";
-include "../api/random_account.php";
 
 //세션 검증
 if (!isset($_SESSION['user_num'])) {
     header("Location: ../login/login.php");
     exit();
+}
+
+//주민번호 가져오는 부분 추가
+$user_num = $_SESSION['user_num'];
+$sql = "SELECT date_of_birth FROM users WHERE user_num = :user_num";
+$stmt = $conn->prepare($sql);
+$stmt->bindParam(":user_num", $user_num);
+$stmt->execute();
+
+$row = $stmt->fetch(PDO::FETCH_ASSOC);
+$resident_num = $row['date_of_birth'];
+
+//주민번호가 6자리 일 때와 아닐 때의 if-else문
+if (strpos($resident_num, '-') !== false) {
+    $resident_number1 = substr($resident_num, 0, 6);
+    $resident_number2 = substr($resident_num, strpos($resident_num, '-') + 1);
+} else {
+    $resident_number1 = $resident_num;
+    $resident_number2 = '';
 }
 ?>
 
