@@ -34,11 +34,13 @@ async function myAccount() {
         "X-Requested-With": "XMLHttpRequest",
         "X-CSRF-Token": csrfToken,
       },
-      credentials: "same-origin",
+      credentials: "include",
       body: JSON.stringify({
         account_number: accountNumber,
       }),
     });
+
+    console.log("Response status: ", response.status);
 
     if (response.status === 401) {
       window.location.href = "../login/login.php";
@@ -56,8 +58,8 @@ async function myAccount() {
     }
     if (data.balance !== undefined) {
       currentBalance = data.balance;
-      const balanseElement = document.getElementById("balance");
-      balanseElement.textContent = `잔액: ${Number(
+      const balanceElement = document.getElementById("balance");
+      balanceElement.textContent = `잔액: ${Number(
         data.balance
       ).toLocaleString()}원`;
     } else {
@@ -152,13 +154,4 @@ function updateBalance(balance) {
   if (balanceElement) {
     balanceElement.textContent = balance;
   }
-}
-
-function escapeHtml(unsafe) {
-  return unsafe
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
 }
