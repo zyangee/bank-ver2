@@ -1,9 +1,37 @@
 <?php
-include "../dbconn.php";
-// 사용자 ID는 세션에서 가져온다고 가정합니다.
-$user_num = $_SESSION['user_num']; // 예시로 사용자 num을 설정
+// HTTPS 강제 사용
+//if (empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] === 'off') {
+//    header('Location: https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
+//    exit;
+//}
+session_start();
+//CSRF 토큰 추가
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        die("CSRF 토큰이 유효하지 않습니다.");
+    }
+} else {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
 
-// 대출 정보를 가져오는 SQL 쿼리
+// 세션 유효성 검사: 세션에 `user_num`이 없으면 로그인 페이지로 리다이렉트
+if (!isset($_SESSION['user_num']) || !is_numeric($_SESSION['user_num'])) {
+    header('Location: login.php');
+    exit();
+}
+
+//세션 관리 강화
+if (!isset($_SESSION['user_ip'])) {
+    $_SESSION['user_ip'] = $_SERVER['REMOTE_ADDR'];
+} elseif ($_SESSION['user_ip'] !== $_SERVER['REMOTE_ADDR']) {
+    session_unset();
+    session_destroy();
+    die("비정상적인 접근이 감지되었습니다.");
+}
+
+include "../dbconn.php";
+$user_num = $_SESSION['user_num'];
+
 $sql = "SELECT *
         FROM loans l
         JOIN loan_types lt ON l.loan_type_id = lt.id
@@ -11,18 +39,15 @@ $sql = "SELECT *
         WHERE l.user_num = :user_num";
 
 try {
-    $stmt = $conn->prepare($sql); // SQL 쿼리 준비
-    $stmt->bindParam(':user_num', $user_num); // 사용자 번호 바인딩
-    $stmt->execute(); // 쿼리 실행
-
-    $loans = $stmt->fetchAll(PDO::FETCH_ASSOC); // 모든 결과 가져오기
+    $stmt = $conn->prepare($sql);
+    $stmt->bindParam(':user_num', $user_num, PDO::PARAM_INT);
+    $stmt->execute();
+    $loans = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {
-    echo "쿼리 오류: " . $e->getMessage(); // 쿼리 실행 오류 처리
-    exit; // 스크립트 종료
+    error_log("Database error: " . $e->getMessage()); // 서버 로그에 기록
+    die("데이터를 불러오는 도중 문제가 발생했습니다. 잠시 후 다시 시도해주세요."); // 사용자에게는 간단한 메시지
 }
-
-// 연결 종료
-$conn = null; // 연결 종료
+$conn = null;
 ?>
 
 <!DOCTYPE html>
@@ -54,7 +79,6 @@ $conn = null; // 연결 종료
         }
 
         tbody tr:nth-child(even) {
-            /*짝수행에만 색 적용 홀수하려면 odd*/
             background-color: #f2f2f2;
         }
 
@@ -104,12 +128,12 @@ $conn = null; // 연결 종료
                 <?php if ($loans): ?>
                     <?php foreach ($loans as $loan): ?>
                         <tr>
-                            <td><?php echo ($loan['type']); ?></td>
-                            <td><?php echo number_format($loan['loan_amount']); ?>원</td>
-                            <td><?php echo ($loan['interest_rate']); ?>%</td>
-                            <td><?php echo ($loan['loan_start_date']); ?></td>
-                            <td><?php echo ($loan['loan_end_date']); ?></td>
-                            <td><?php echo ($loan['status']); ?></td>
+                            <td><?php echo htmlspecialchars($loan['type'] ?? ''); ?></td> <!--htmlspecialchats-->
+                            <td><?php echo htmlspecialchars(number_format($loan['loan_amount'] ?? 0)); ?>원</td>
+                            <td><?php echo htmlspecialchars($loan['interest_rate'] ?? 0); ?>%</td>
+                            <td><?php echo htmlspecialchars($loan['loan_start_date'] ?? ''); ?></td>
+                            <td><?php echo htmlspecialchars($loan['loan_end_date'] ?? ''); ?></td>
+                            <td><?php echo htmlspecialchars($loan['status'] ?? ''); ?></td>
                         </tr>
                     <?php endforeach; ?>
                 <?php else: ?>

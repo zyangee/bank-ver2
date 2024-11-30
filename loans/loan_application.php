@@ -1,25 +1,65 @@
 <?php
-session_start(); // 세션 시작
+// HTTPS 강제 사용
+//if (empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] === 'off') {
+//    header('Location: https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
+//    exit;
+//}
+session_start();
+
+//CSRF 토큰 추가
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        die("CSRF 토큰이 유효하지 않습니다.");
+    }
+} else {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+// 세션 유효성 검사: 세션에 `user_num`이 없으면 로그인 페이지로 리다이렉트
+if (!isset($_SESSION['user_num']) || !is_numeric($_SESSION['user_num'])) {
+    header('Location: ../login/login.php');
+    exit();
+}
+
+$user_num = $_SESSION['user_num'];
+
+//세션 관리 강화
+if (!isset($_SESSION['user_ip'])) {
+    $_SESSION['user_ip'] = $_SERVER['REMOTE_ADDR'];
+} elseif ($_SESSION['user_ip'] !== $_SERVER['REMOTE_ADDR']) {
+    session_unset();
+    session_destroy();
+    die("비정상적인 접근이 감지되었습니다.");
+}
+
+// 서버 측 날짜 검증
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $loan_start_date = $_POST['loanStartDate'];
+    $today = date('Y-m-d');
+
+    if ($loan_start_date < $today) {
+        die("대출 시작일은 오늘 이후의 날짜여야 합니다.");
+    }
+}
 
 include "../dbconn.php";
-// 사용자 ID는 세션에서 가져온다고 가정합니다.
-// // 로그인 성공 후
-$user_num = $_SESSION['user_num']; // $user_num은 현재 로그인한 사용자의 ID
-$result = $conn->query("SELECT SUM(balance) AS total_assets FROM accounts WHERE user_num = '$user_num'");
-
-// fetch_assoc 대신 fetch(PDO::FETCH_ASSOC) 사용
-$row = $result->fetch(PDO::FETCH_ASSOC);
-$totalAssets = $row['total_assets'];
-
-// 금리 설정
+$user_num = $_SESSION['user_num'];
+try {
+    $stmt = $conn->prepare("SELECT SUM(balance) AS total_assets FROM accounts WHERE user_num = :user_num");
+    $stmt->bindParam(':user_num', $user_num, PDO::PARAM_INT); // SQL 인젝션 방지 
+    $stmt->execute(); // 쿼리를 실행
+    $row = $stmt->fetch(PDO::FETCH_ASSOC); // 실행 결과 가져오기$row = $result->fetch(PDO::FETCH_ASSOC);
+    $totalAssets = $row['total_assets'];
+} catch (PDOException $e) {
+    die("데이터베이스 오류: " . $e->getMessage());
+}
 $interestRates = [
-    '신용대출' => [100000000 => 7.0, 300000000 => 5.5, 500000000 => 3.5, 0 => 7.5], // 1억 미만 7.5%
-    '담보대출' => [100000000 => 5.0, 300000000 => 4.5, 500000000 => 4.0, 0 => 5.5], // 1억 미만 5.5%
-    '자동차대출' => [100000000 => 4.5, 300000000 => 4.2, 500000000 => 3.8, 0 => 4.8], // 1억 미만 4.8%
-    '사업자대출' => [100000000 => 7.0, 300000000 => 6.0, 500000000 => 4.5, 0 => 7.5] // 1억 미만 7.5%
+    '신용대출' => [100000000 => 7.0, 300000000 => 5.5, 500000000 => 3.5, 0 => 7.5],
+    '담보대출' => [100000000 => 5.0, 300000000 => 4.5, 500000000 => 4.0, 0 => 5.5],
+    '자동차대출' => [100000000 => 4.5, 300000000 => 4.2, 500000000 => 3.8, 0 => 4.8],
+    '사업자대출' => [100000000 => 7.0, 300000000 => 6.0, 500000000 => 4.5, 0 => 7.5]
 ];
 
-// 선택한 금리를 저장하는 배열
 $selectedRates = [];
 foreach ($interestRates as $type => $rates) {
     foreach ($rates as $limit => $rate) {
@@ -29,71 +69,67 @@ foreach ($interestRates as $type => $rates) {
     }
 }
 
-// 대출 종료 날짜 설정
 $loanDuration = 0;
 if ($totalAssets >= 500000000) {
-    $loanDuration = 7; // 7년
+    $loanDuration = 7;
 } elseif ($totalAssets >= 300000000) {
-    $loanDuration = 5; // 5년
+    $loanDuration = 5;
 } elseif ($totalAssets >= 100000000) {
-    $loanDuration = 4; // 4년
+    $loanDuration = 4;
 } elseif ($totalAssets < 100000000) {
-    $loanDuration = 3; // 3년 (1억원 미만)
+    $loanDuration = 3;
 }
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    // 대출 신청 정보 수집
-    $loan_type = $_POST['loanType']; // 선택한 대출 유형
-    $loan_amount = $_POST['loanAmount']; // 대출 금액
-    $interest_rate = $_POST['interestRate']; // 금리
-    $loan_start_date = $_POST['loanStartDate']; // 대출 시작 날짜
-    $loan_end_date = $_POST['loanEndDate']; // 대출 종료 날짜
-    $loan_status_id = 1; // 대출 상태 ID 예시 (여기서는 1로 고정)
+    // CSRF 토큰 검증
+    if (isset($_POST['csrf_token']) && $_POST['csrf_token'] === $_SESSION['csrf_token']) {
+        // CSRF 토큰이 일치하면, 요청을 처리합니다.
 
-    // user_num을 고정 값으로 설정
-    $user_num = 2; // 고정 값으로 2를 사용
-
-    // 대출 유형 ID 가져오기
-    $stmt = $conn->prepare("SELECT id FROM loan_types WHERE type = :loanType");
-    $stmt->bindParam(':loanType', $loan_type);
-    $stmt->execute();
-    $loan_type_id = $stmt->fetchColumn();
-
-    // 대출 유형이 존재하지 않는 경우 처리
-    if (!$loan_type_id) {
-        die("유효하지 않은 대출 유형입니다."); // 오류 메시지 출력
-    }
-
-    try {
-        // SQL 쿼리 준비
-        $sql = "INSERT INTO loans (user_num, loan_type_id, loan_amount, interest_rate, loan_start_date, loan_end_date, loan_status_id) 
-                VALUES (:userNum, :loanType, :loanAmount, :interestRate, :loanStartDate, :loanEndDate, :loanStatusId)";
-
-        // 쿼리 준비
-        $stmt = $conn->prepare($sql);
-
-        // 파라미터 바인딩
-        $stmt->bindParam(':userNum', $user_num); // 고정된 사용자 ID
-        $stmt->bindParam(':loanType', $loan_type_id); // 대출 유형 ID
-        $stmt->bindParam(':loanAmount', $loan_amount); // 대출 금액
-        $stmt->bindParam(':interestRate', $interest_rate); // 금리
-        $stmt->bindParam(':loanStartDate', $loan_start_date); // 대출 시작 날짜
-        $stmt->bindParam(':loanEndDate', $loan_end_date); // 대출 종료 날짜
-        $stmt->bindParam(':loanStatusId', $loan_status_id); // 대출 상태 ID
-
-        // 쿼리 실행
+        $loan_type = $_POST['loanType'];
+        $loan_amount = $_POST['loanAmount'];
+        $interest_rate = $_POST['interestRate'];
+        $loan_start_date = $_POST['loanStartDate'];
+        $loan_end_date = $_POST['loanEndDate'];
+        $loan_status_id = 1;
+        $user_num = $_SESSION['user_num']; //세션추가
+        $stmt = $conn->prepare("SELECT id FROM loan_types WHERE type = :loanType");
+        $stmt->bindParam(':loanType', $loan_type);
         $stmt->execute();
+        $loan_type_id = $stmt->fetchColumn();
 
-        echo "<script>
-            alert('대출 신청이 성공적으로 완료되었습니다.');
-            window.location.href = 'loan_history.php'; // 대출 조회 페이지로 이동
-          </script>";
-    } catch (PDOException $e) {
-        // 쿼리 실행 실패 시 오류 메시지 출력
-        echo "<script>
-            alert('대출 신청 중 오류가 발생했습니다: " . addslashes($e->getMessage()) . "');
-            window.location.href = 'loan_product.php'; // 대출 상품 페이지로 이동
-          </script>";
+        if (!$loan_type_id) {
+            die("유효하지 않은 대출 유형입니다.");
+        }
+
+        try {
+            $sql = "INSERT INTO loans (user_num, loan_type_id, loan_amount, interest_rate, loan_start_date, loan_end_date, loan_status_id) 
+                    VALUES (:userNum, :loanType, :loanAmount, :interestRate, :loanStartDate, :loanEndDate, :loanStatusId)";
+
+            $stmt = $conn->prepare($sql);
+
+            $stmt->bindParam(':userNum', $user_num);
+            $stmt->bindParam(':loanType', $loan_type_id);
+            $stmt->bindParam(':loanAmount', $loan_amount);
+            $stmt->bindParam(':interestRate', $interest_rate);
+            $stmt->bindParam(':loanStartDate', $loan_start_date);
+            $stmt->bindParam(':loanEndDate', $loan_end_date);
+            $stmt->bindParam(':loanStatusId', $loan_status_id);
+            $stmt->execute();
+
+            echo "<script>
+                alert('대출 신청이 성공적으로 완료되었습니다.');
+                window.location.href = 'loan_history.php'; // 대출 조회 페이지로 이동
+            </script>";
+        } catch (PDOException $e) {
+            echo "<script>
+                alert('대출 신청 중 오류가 발생했습니다: " . addslashes($e->getMessage()) . "');
+                window.location.href = 'loan_product.php'; // 대출 상품 페이지로 이동
+            </script>";
+        }
+    } else {
+        // CSRF 토큰 검증 실패 시 오류 처리
+        echo "<script>alert('CSRF 검증 실패. 다시 시도해 주세요.'); window.location.href = 'loan_product.php';</script>";
+        exit;
     }
 }
 
@@ -105,9 +141,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>대출 신청</title>
-    <link rel="stylesheet" href="../css/back.css">
-    <link rel="stylesheet" href="../css/input.css">
-    <link rel="stylesheet" href="../css/input_account.css">
+    <link rel="stylesheet" href="css/back.css">
+    <link rel="stylesheet" href="css/input.css">
+    <link rel="stylesheet" href="css/input_account.css">
     <script>
         function updateInterestRates() {
             const loanType = document.getElementById("loanType").value;
@@ -119,14 +155,44 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 for (const [limit, rate] of Object.entries(interestRates[loanType])) {
                     if (totalAssets >= limit) {
                         interestRate = rate;
-                        break; // 조건에 맞는 첫 번째 금리만 가져옴
+                        break;
                     }
                 }
             }
 
-            // 금리 필드에 값을 설정
             document.getElementById("interestRate").value = interestRate;
         }
+
+        // 페이지 로드 시, 시작일과 종료일 제한 설정
+        window.onload = function () {
+            const today = new Date();
+            const nextYear = new Date();
+            nextYear.setFullYear(today.getFullYear() + 1); // 현재 날짜로부터 1년 후 날짜
+
+            const todayString = today.toISOString().split('T')[0]; // yyyy-mm-dd 형식
+            const nextYearString = nextYear.toISOString().split('T')[0]; // 1년 후 날짜
+
+            // 대출 시작일 input의 최소, 최대 날짜 설정
+            document.getElementById("loanStartDate").setAttribute("min", todayString);
+            document.getElementById("loanStartDate").setAttribute("max", nextYearString);
+        };
+
+        // 대출 시작일이 오늘부터 1년 이내로만 설정되도록 하는 코드
+        document.getElementById("loanStartDate").addEventListener("change", function () {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // 오늘 날짜의 시간을 초기화
+            const selectedDate = new Date(this.value);
+
+            const nextYear = new Date(today);
+            nextYear.setFullYear(today.getFullYear() + 1); // 현재 날짜로부터 1년 후
+
+            // 선택된 날짜가 오늘보다 이전이거나 1년 이후일 경우 알림
+            if (selectedDate < today || selectedDate > nextYear) {
+                alert("대출 시작일은 오늘부터 1년 이내의 날짜만 선택할 수 있습니다.");
+                this.value = ""; // 잘못된 날짜를 선택한 경우 초기화
+            }
+        });
+
 
         function updateEndDate() {
             const startDate = new Date(document.getElementById("loanStartDate").value);
@@ -153,7 +219,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <li><a href="../index.php">홈</a></li>
                 <li>|</li>
                 <?php
-                include "../dbconn.php";
+                include "../dbconn.php.php";
                 if (isset($_SESSION['username'])): ?>
                     <li><a href="../account/users.php"><?php echo $_SESSION['username']; ?></a>님</li>
                     <li>|</li>
@@ -166,7 +232,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     </header>
     <div class="container">
         <h2 class="h2_pageinfo">대출신청</h2>
-        <form class="form_css" action="" method="POST"> <!-- action=""으로 수정하여 같은 페이지로 POST 요청 -->
+        <form class="form_css" action="" method="POST">
+            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>"> <!-- CSRF 토큰 추가 -->
             <div>
                 <label class="input" for="loanType">대출 종류</label>
                 <select class="select" id="loanType" name="loanType" onchange="updateInterestRates()">
@@ -195,8 +262,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             </div>
             <div>
                 <label class="input" for="loanStartDate">대출 시작일</label>
-                <input class="input_text" type="date" id="loanStartDate" name="loanStartDate" onchange="updateEndDate()"
-                    required>
+                <?php
+                $today = date('Y-m-d'); // 오늘 날짜를 'YYYY-MM-DD' 형식으로 가져옴
+                ?>
+                <input class="input_text" type="date" id="loanStartDate" name="loanStartDate"
+                    min="<?php echo $today; ?>" onchange="updateEndDate()" required> <!--오늘날짜이전 선택불가-->
             </div>
             <div>
                 <label class="input" for="loanEndDate">대출 종료일</label>

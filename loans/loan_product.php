@@ -1,3 +1,13 @@
+<?php
+// HTTPS 강제 사용
+//if (empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] === 'off') {
+//    header('Location: https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']);
+//    exit;
+
+header("Content-Security-Policy: default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'"); //CSP설정
+header("X-Frame-Options: DENY"); //클릭재킹방지
+?>
+
 <!DOCTYPE html>
 <html lang="ko">
 
