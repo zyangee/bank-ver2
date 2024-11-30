@@ -12,7 +12,7 @@ $_SESSION['last_activity'] = time();
 
 //보안 헤더 설정
 header("X-Frame-Options: DENY");
-header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline';");
+header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';");
 
 ?>
 
