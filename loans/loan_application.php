@@ -6,15 +6,6 @@
 //}
 session_start();
 
-//CSRF 토큰 추가
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
-        die("CSRF 토큰이 유효하지 않습니다.");
-    }
-} else {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-}
-
 // 세션 유효성 검사: 세션에 `user_num`이 없으면 로그인 페이지로 리다이렉트
 if (!isset($_SESSION['user_num']) || !is_numeric($_SESSION['user_num'])) {
     header('Location: ../login/login.php');
@@ -44,6 +35,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 include "../dbconn.php";
 $user_num = $_SESSION['user_num'];
+
 try {
     $stmt = $conn->prepare("SELECT SUM(balance) AS total_assets FROM accounts WHERE user_num = :user_num");
     $stmt->bindParam(':user_num', $user_num, PDO::PARAM_INT); // SQL 인젝션 방지 
@@ -53,6 +45,7 @@ try {
 } catch (PDOException $e) {
     die("데이터베이스 오류: " . $e->getMessage());
 }
+
 $interestRates = [
     '신용대출' => [100000000 => 7.0, 300000000 => 5.5, 500000000 => 3.5, 0 => 7.5],
     '담보대출' => [100000000 => 5.0, 300000000 => 4.5, 500000000 => 4.0, 0 => 5.5],
@@ -132,6 +125,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         exit;
     }
 }
+// 보안 헤더 설정 - PHP에서 직접 설정
+header("X-Frame-Options: DENY");
+header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';");
 
 ?>
 <!DOCTYPE html>
@@ -140,10 +136,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
     <title>대출 신청</title>
-    <link rel="stylesheet" href="css/back.css">
-    <link rel="stylesheet" href="css/input.css">
-    <link rel="stylesheet" href="css/input_account.css">
+    <link rel="stylesheet" href="../css/back.css">
+    <link rel="stylesheet" href="../css/input.css">
+    <link rel="stylesheet" href="../css/input_account.css">
     <script>
         function updateInterestRates() {
             const loanType = document.getElementById("loanType").value;
