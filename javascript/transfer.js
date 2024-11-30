@@ -34,32 +34,28 @@ async function myAccount() {
         "X-Requested-With": "XMLHttpRequest",
         "X-CSRF-Token": csrfToken,
       },
-      credentials: "include",
+      credentials: "same-origin",
       body: JSON.stringify({
         account_number: accountNumber,
       }),
     });
 
-    console.log("Response status: ", response.status);
     //data
     const data = await response.json();
 
     if (response.status === 401) {
-      if (data.redirect) {
-        window.location.href = data.redirect;
-      } else {
-        window.location.href = "../login/login.php";
-      }
+      window.location.href = data.redirect || "../login/login.php";
       return;
     }
 
     if (!response.ok) {
-      throw new Error("서버 응답 오류가 발생했습니다.");
+      throw new Error(data.error || "서버 응답 오류가 발생했습니다.");
     }
-    if (data.error) {
-      throw new Error(data.error);
+    if (!data.success) {
+      throw new Error(data.error || "잔액 조회 중 오류가 발생했습니다.");
     }
-    if (data.balance !== undefined) {
+
+    if (data.success && data.balance !== undefined) {
       currentBalance = data.balance;
       const balanceElement = document.getElementById("balance");
       balanceElement.textContent = `잔액: ${Number(

@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once "../dbconn.php";
 
 // AJAX 요청 확인
@@ -20,6 +21,7 @@ if (isset($_SESSION['timeout']) && (time() - $_SESSION['timeout'] > $inactive)) 
     session_destroy();
     http_response_code(401);
     die(json_encode([
+        'success' => false,
         'error' => '세션이 만료되었습니다',
         'redirect' => '../login/login.php'
     ]));
@@ -29,7 +31,7 @@ $_SESSION['timeout'] = time();
 //POST 요청 확인
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     http_response_code(405);
-    die(json_encode(['error' => '잘못된 요청 메소드입니다.']));
+    die(json_encode(['success' => false, 'error' => '잘못된 요청 메소드입니다.']));
 }
 
 //JSON 요청 처리
@@ -38,14 +40,14 @@ $data = json_decode($json, true);
 
 if (json_last_error() !== JSON_ERROR_NONE) {
     http_response_code(400);
-    die(json_encode(['error' => '잘못된 요청 형식입니다.']));
+    die(json_encode(['success' => false, 'error' => '잘못된 요청 형식입니다.']));
 }
 
 //CSRF 토큰 검증
 $requestToken = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
 if (!isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $requestToken)) {
     http_response_code(403);
-    die(json_encode(['error' => '유효하지 않은 보안 토큰입니다.']));
+    die(json_encode(['success' => false, 'error' => '유효하지 않은 보안 토큰입니다.']));
 }
 
 header('Content-Type: application/json; charset=utf-8');

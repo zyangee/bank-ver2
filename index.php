@@ -9,6 +9,11 @@ if (!isset($_SESSION['last_activity']) || (time() - $_SESSION['last_activity'] >
     exit();
 }
 $_SESSION['last_activity'] = time();
+
+//보안 헤더 설정
+header("X-Frame-Options: DENY");
+header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline';");
+
 ?>
 
 <!DOCTYPE html>
@@ -18,8 +23,6 @@ $_SESSION['last_activity'] = time();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-Content-Type-Options" content="nosniff">
-    <meta http-equiv="X-Frame-Options" content="DENY">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline';">
 
     <title>main</title>
     <link rel="stylesheet" href="css/back.css">
