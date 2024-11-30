@@ -78,7 +78,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
                         $stmt->execute();
 
                         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                            echo '<option value="' . htmlspecialchars($row['account_number']) . '">' . '</option>';
+                            echo '<option value="' . htmlspecialchars($row['account_number']) . '">' . htmlspecialchars($row['account_number']) . '</option>';
                         }
                     } catch (PDOException $e) {
                         error_log("계좌 조회 오류: " . $e->getMessage());

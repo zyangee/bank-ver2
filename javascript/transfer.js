@@ -118,10 +118,10 @@ async function transferSubmit(event) {
       },
       credentials: "include",
       body: JSON.stringify({
-        accountNumber,
-        accountNumber_in,
+        account_number_out: accountNumber,
+        account_number_in: accountNumber_in,
         transfer_amount: transferAmount,
-        accountPassword,
+        account_password: accountPassword,
       }),
     });
 
