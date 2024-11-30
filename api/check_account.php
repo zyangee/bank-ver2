@@ -1,5 +1,6 @@
 <?php
 session_start();
+error_log('$_SESSION: ' . print_r($_SESSION, true));
 require_once "../dbconn.php";
 
 // AJAX 요청 확인

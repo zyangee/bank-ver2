@@ -1,4 +1,6 @@
 <?php
+session_start();
+error_log('$_SESSION: ' . print_r($_SESSION, true));
 include "../dbconn.php";
 
 //세션 체크 강화
@@ -12,15 +14,13 @@ session_regenerate_id(true);
 
 //비활성 세션 처리
 $inactive = 1800; // 30분
-if (isset($_SESSION['timeout']) && (time() - $_SESSION['timeout'] > $inactive)) {
+if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > $inactive)) {
     session_unset();
     session_destroy();
     header("Location: ../login/login.php");
     exit();
 }
-$_SESSION['timeout'] = time();
-
-$select_user_num = $_SESSION['user_num'];
+$_SESSION['last_activity'] = time();
 
 // 보안 헤더 설정 - PHP에서 직접 설정
 header("X-Frame-Options: DENY");
@@ -74,7 +74,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
                     try {
                         $query = "SELECT account_number, balance FROM accounts WHERE user_num = :select_user_num";
                         $stmt = $conn->prepare($query);
-                        $stmt->bindParam(":select_user_num", $select_user_num);
+                        $stmt->bindParam(":select_user_num", $_SESSION['user_num']);
                         $stmt->execute();
 
                         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {

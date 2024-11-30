@@ -34,7 +34,7 @@ async function myAccount() {
         "X-Requested-With": "XMLHttpRequest",
         "X-CSRF-Token": csrfToken,
       },
-      credentials: "same-origin",
+      credentials: "include",
       body: JSON.stringify({
         account_number: accountNumber,
       }),
@@ -116,7 +116,7 @@ async function transferSubmit(event) {
         "X-Requested-With": "XMLHttpRequest",
         "X-CSRF-Token": csrfToken,
       },
-      credentials: "same-origin",
+      credentials: "include",
       body: JSON.stringify({
         account_number_out,
         account_number_in,
