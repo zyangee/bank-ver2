@@ -10,12 +10,6 @@ if (!isset($_SESSION['last_activity']) || (time() - $_SESSION['last_activity'] >
 }
 $_SESSION['last_activity'] = time();
 
-//로그인 성공 메시지 출력
-if (isset($_SESSION['login_message'])) {
-    echo '<script>alert("' . $_SESSION['login_message'] . '");<script>';
-    unset($_SESSION['login_message']);
-}
-
 //보안 헤더 설정
 header("X-Frame-Options: DENY");
 header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';");
