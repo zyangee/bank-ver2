@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             //로그인 성공 로그
             error_log("로그인 성공 - User: {$userid}, IP: {$_SERVER['REMOTE_ADDR']}");
-            echo '<script>alert("로그인 성공");</script>';
+            $_SESSION['login_message'] = '로그인 성공';
 
             header("Location: ../index.php");
             exit();
