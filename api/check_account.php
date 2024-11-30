@@ -57,7 +57,7 @@ try {
     //입력값 검증
     $account_number = filter_var($data['account_number'] ?? '', FILTER_SANITIZE_STRING);
 
-    if (empty($account_number) || !preg_match('/^[0-9]{10,14}$/', $account_number)) {
+    if (empty($account_number) || !preg_match('/^[0-9]{3}-[0-9]{4}$/', $account_number)) {
         throw new Exception('유효하지 않은 계좌번호입니다.');
     }
     $sql = "SELECT balance FROM accounts WHERE account_number = :account_number AND user_num=:user_num";

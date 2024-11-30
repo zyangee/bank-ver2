@@ -1,6 +1,6 @@
 //입력값 검증 함수들
 const validateAccountNumber = (accountNumber) => {
-  const regex = /^[0-9]{10,14}$/;
+  const regex = /^[0-9]{3}-[0-9]{4}$/;
   return regex.test(accountNumber);
 };
 
@@ -77,18 +77,18 @@ async function myAccount() {
 async function transferSubmit(event) {
   event.preventDefault();
 
-  const account_number_out = document.getElementById("out_account").value; //출금 계좌
-  const account_number_in = document.getElementById("in_account").value; //입금 계좌
+  const accountNumber = document.getElementById("out_account").value; //출금 계좌
+  const accountNumber_in = document.getElementById("in_account").value; //입금 계좌
   const transferAmount = parseFloat(
     document.getElementById("transfer_amount").value
   );
-  const account_password = document.getElementById("input_password").value;
+  const accountPassword = document.getElementById("input_password").value;
   const csrfToken = document.querySelector('input[name="csrf_token"]').value;
 
   //입력값 검증
   if (
-    !validateAccountNumber(account_number_out) ||
-    !validateAccountNumber(account_number_in)
+    !validateAccountNumber(accountNumber) ||
+    !validateAccountNumber(accountNumber_in)
   ) {
     alert("올바른 계좌번호 형식이 아닙니다.");
     return false;
@@ -97,7 +97,7 @@ async function transferSubmit(event) {
     alert("올바른 이체 금액이 아닙니다.");
     return false;
   }
-  if (!validatePassword(account_password)) {
+  if (!validatePassword(accountPassword)) {
     alert("올바른 비밀번호 형식이 아닙니다.");
     return false;
   }
@@ -118,10 +118,10 @@ async function transferSubmit(event) {
       },
       credentials: "include",
       body: JSON.stringify({
-        account_number_out,
-        account_number_in,
+        accountNumber,
+        accountNumber_in,
         transfer_amount: transferAmount,
-        account_password,
+        accountPassword,
       }),
     });
 

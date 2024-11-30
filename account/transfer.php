@@ -78,7 +78,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
                         $stmt->execute();
 
                         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                            echo '<option value="' . htmlspecialchars($row['account_number']) . '">' . htmlspecialchars($row['account_number']) . '</option>';
+                            echo '<option value="' . htmlspecialchars($row['account_number']) . '">' . '</option>';
                         }
                     } catch (PDOException $e) {
                         error_log("계좌 조회 오류: " . $e->getMessage());
@@ -92,8 +92,8 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
             </div>
             <div> <!--입금계좌번호 입력-->
                 <label class="input" for="in_account">입금계좌번호</label>
-                <input class="input_text" type="text" id="in_account" name="in_account" pattern="[0-9]{10,14}"
-                    maxlength="14" required>
+                <input class="input_text" type="text" id="in_account" name="in_account" pattern="[0-9]{3}-[0-9]{4}"
+                    maxlength="8" required>
             </div>
             <div> <!--이체금액 입력-->
                 <label class="input" for="transfer_amount">이체금액</label>
