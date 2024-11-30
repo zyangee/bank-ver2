@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // 세션 유효성 검사: 세션에 `user_num`이 없으면 로그인 페이지로 리다이렉트
 if (!isset($_SESSION['user_num']) || !is_numeric($_SESSION['user_num'])) {
-    header('Location: login.php');
+    header('Location: ../login/login.php');
     exit();
 }
 
@@ -31,7 +31,7 @@ if (!isset($_SESSION['user_ip'])) {
 
 // 세션 ID 재생성 (세션 하이재킹 방지)
 session_regenerate_id(true);
-include "dbconn.php";
+include "../dbconn.php";
 
 $user_num = $_SESSION['user_num'];
 $plainPassword = "";
@@ -97,9 +97,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['oldPassword'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>비밀번호 변경</title>
-    <link rel="stylesheet" href="css/back.css">
-    <link rel="stylesheet" href="css/input.css">
-    <link rel="stylesheet" href="css/input_account.css">
+    <link rel="stylesheet" href="../css/back.css">
+    <link rel="stylesheet" href="../css/input.css">
+    <link rel="stylesheet" href="../css/input_account.css">
     <script>
         window.onload = function () {
             <?php if (!empty($passwordChangeMessage)): ?>
@@ -124,17 +124,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['oldPassword'])) {
     <div class="navbar">
         <span>megabank</span>
         <ul>
-            <li><a href="index.php">홈</a></li>
+            <li><a href="../index.php">홈</a></li>
             <li>|</li>
-            <?php
-            include "dbconn.php";
-            if (isset($_SESSION['username'])): ?>
-                <li><a href="users.php"><?php echo htmlspecialchars($_SESSION['username'], ENT_QUOTES, 'UTF-8'); ?></a>님
-                </li>
+            <?php if (isset($_SESSION['username'])): ?>
+                <li><a href="../account/users.php"><?php echo htmlspecialchars($_SESSION['username']); ?></a>님</li>
                 <li>|</li>
-                <li><a href="logout.php">로그아웃</a></li>
+                <li><a href="../login/logout.php">로그아웃</a></li>
             <?php else: ?>
-                <li><a href="login.php">로그인</a></li>
+                <li><a href="../login/login.php">로그인</a></li>
             <?php endif; ?>
         </ul>
     </div>
