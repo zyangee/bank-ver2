@@ -34,13 +34,13 @@ try {
     $input_password = $input['account_password'] ?? ''; //입력된 비밀번호
 
     //기본 유효성 검사
-    if (!$account_number_out || !$account_number_in || !$transfer_amount || !empty($input_password)) {
+    if (!$account_number_out || !$account_number_in || !$transfer_amount || empty($input_password)) {
         throw new Exception('필수 입력값이 누락되었습니다.');
     }
 
     if (
-        !preg_match('/^[0-9]{10,14}$/', $account_number_out) ||
-        !preg_match('/^[0-9]{10,14}$/', $account_number_in)
+        !preg_match('/^[0-9]{3}-[0-9]{4}$/', $account_number_out) ||
+        !preg_match('/^[0-9]{3}-[0-9]{4}$/', $account_number_in)
     ) {
         throw new Exception('유효하지 않은 계좌번호 형식입니다.');
     }
@@ -139,6 +139,8 @@ try {
     $stmt_history_in->bindParam(":account_number_in", $account_number_in);
     $stmt_history_in->bindParam(":ip_address", $_SERVER['REMOTE_ADDR']);
     $stmt_history_in->execute();
+
+    $conn->commit();
 
     //로그 기록
     error_log("이체 성공 - From: {$account_number_out}, To: {$account_number_in}, Amount: {$transfer_amount}, User: {$_SESSION['user_num']}, IP: {$_SERVER['REMOTE_ADDR']}");

@@ -63,7 +63,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
     </div>
     <div class="container">
         <h2 class="h2_pageinfo">송금</h2>
-        <form class="form_css" method="POST" onsubmit="return transferSubmit(event)">
+        <form class="form_css" method="POST" onsubmit="transferSubmit(event); return false;">
             <!--CSRF 토큰 삽입-->
             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
             <div> <!--출금계좌선택-->
@@ -78,7 +78,8 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
                         $stmt->execute();
 
                         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                            echo '<option value="' . htmlspecialchars($row['account_number']) . '">' . htmlspecialchars($row['account_number']) . '</option>';
+                            $formatted_account = htmlspecialchars($row['account_number']);
+                            echo '<option value="' . $formatted_account . '">' . $formatted_account . '</option>';
                         }
                     } catch (PDOException $e) {
                         error_log("계좌 조회 오류: " . $e->getMessage());
@@ -93,7 +94,7 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
             <div> <!--입금계좌번호 입력-->
                 <label class="input" for="in_account">입금계좌번호</label>
                 <input class="input_text" type="text" id="in_account" name="in_account" pattern="[0-9]{3}-[0-9]{4}"
-                    maxlength="8" required>
+                    placeholder="예: 123-4567" maxlength="8" required>
             </div>
             <div> <!--이체금액 입력-->
                 <label class="input" for="transfer_amount">이체금액</label>

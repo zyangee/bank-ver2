@@ -1,6 +1,11 @@
 //입력값 검증 함수들
 const validateAccountNumber = (accountNumber) => {
+  accountNumber = accountNumber.trim();
   const regex = /^[0-9]{3}-[0-9]{4}$/;
+
+  console.log(`검증 중인 계좌번호: " ${accountNumber}`);
+  console.log(`정규식 테스트 결과: "+ ${regex.test(accountNumber)}`);
+
   return regex.test(accountNumber);
 };
 
@@ -77,20 +82,30 @@ async function myAccount() {
 async function transferSubmit(event) {
   event.preventDefault();
 
-  const accountNumber = document.getElementById("out_account").value; //출금 계좌
-  const accountNumber_in = document.getElementById("in_account").value; //입금 계좌
+  const accountNumber = document.getElementById("out_account").value.trim(); //출금 계좌
+  const accountNumber_in = document.getElementById("in_account").value.trim(); //입금 계좌
+
   const transferAmount = parseFloat(
     document.getElementById("transfer_amount").value
   );
   const accountPassword = document.getElementById("input_password").value;
   const csrfToken = document.querySelector('input[name="csrf_token"]').value;
 
+  // 디버깅을 위한 로그
+  console.log("계좌번호 검증 전 데이터:", {
+    출금계좌: accountNumber,
+    입금계좌: accountNumber_in,
+  });
+
   //입력값 검증
-  if (
-    !validateAccountNumber(accountNumber) ||
-    !validateAccountNumber(accountNumber_in)
-  ) {
+  if (!validateAccountNumber(accountNumber)) {
+    console.log("출금계좌 검증 실패");
     alert("올바른 계좌번호 형식이 아닙니다.");
+    return false;
+  }
+  if (!validateAccountNumber(accountNumber_in)) {
+    console.log("입금계좌 검증 실패");
+    alert("입금 계좌번호 형식이 올바르지 않습니다.");
     return false;
   }
   if (!validateAmount(transferAmount)) {
@@ -125,27 +140,24 @@ async function transferSubmit(event) {
       }),
     });
 
-    if (response.status === 401) {
-      window.location.href = "../login/login.php";
-      return;
-    }
-
     if (!response.ok) {
-      throw new Error("서버 응답 오류가 발생했습니다.");
+      const errorData = await response.json();
+      throw new Error(errorData.message || "서버 응답 오류가 발생했습니다.");
     }
 
     const data = await response.json();
     if (data.success) {
       alert("이체가 완료되었습니다.");
       window.location.href = "../index.php";
+      return true;
     } else {
       throw new Error(data.message || "이체 처리 중 오류가 발생했습니다.");
     }
   } catch (error) {
     console.error("Error: ", error);
     alert(error.message || "이체 처리 중 오류가 발생했습니다.");
+    return false;
   }
-  return false;
 }
 
 function updateBalance(balance) {
