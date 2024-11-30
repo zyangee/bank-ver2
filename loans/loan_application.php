@@ -243,8 +243,8 @@ header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-i
             </div>
             <div>
                 <label class="input" for="loanAmount">대출 금액</label>
-                <input class="input_text" type="number" id="loanAmount" name="loanAmount" required min="1000000"
-                    max="1000000000" step="1000000">
+                <input class="input_text" type="number" id="loanAmount" name="loanAmount"
+                    placeholder="최소 금액은 1,000,000월 입니다." required min="1000000" max="1000000000" step="1000000">
             </div>
             <div>
                 <label class="input" for="totalAssets">총 자산</label>
