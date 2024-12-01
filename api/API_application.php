@@ -22,10 +22,10 @@ function sendErrorResponse($message)
     echo json_encode(['success' => false, 'message' => $message]);
     exit();
 }
-if (!isset($_SESSION['user_ip'])) {
+if (!isset($_SESSION['ip'])) {
     // 세션에 user_ip가 없을 때
     sendErrorResponse('비정상적인 접근입니다.');
-} else if ($_SESSION['user_ip'] !== $_SERVER['REMOTE_ADDR']) {
+} else if ($_SESSION['ip'] !== $_SERVER['REMOTE_ADDR']) {
     // 세션의 user_ip와 현재 클라이언트 IP가 다를 때
     sendErrorResponse('비정상적인 접근입니다.');
 }
