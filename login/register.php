@@ -92,6 +92,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <html>
 
 <head>
+    <title>회원가입</title>
     <script src="../javascript/register.js"></script>
     <link rel="stylesheet" href="../css/input.css">
     <link rel="stylesheet" href="../css/back.css">
