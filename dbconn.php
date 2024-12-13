@@ -27,10 +27,10 @@ if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
-$serverName = "210.217.27.205"; //데이터베이스 서버 공인ip
-$database = "bank";
-$uid = "bankuser1";
-$pwd = "Bankuser1!";
+$serverName = ""; //데이터베이스 서버의 IP
+$database = ""; //데이터베이스
+$uid = ""; //데이터베이스의 ID
+$pwd = ""; //데이터베이스의 PW
 
 //보안 헤더 설정
 header("X-Content-Type-Options: nosniff");
